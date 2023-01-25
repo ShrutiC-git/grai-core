@@ -10,7 +10,7 @@ services:
     image: "${SERVER_IMAGE}"
     # build: ./grai-server/app
     volumes:
-      - ./app/:/usr/src/app/
+      - ./grai-server/app/:/usr/src/app/
     ports:
       - 8000:8000
     environment:
