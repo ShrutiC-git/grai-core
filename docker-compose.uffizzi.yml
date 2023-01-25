@@ -22,9 +22,13 @@ services:
       - DJANGO_SUPERUSER_USERNAME=null@grai.io
       - DJANGO_SUPERUSER_PASSWORD=super_secret
       - DJANGO_SUPERUSER_WORKSPACE=Workspace1
-      - SERVER_HOST=localhost
-      - FRONTEND_HOST=localhost
-      - FRONTEND_URL=http://localhost:80
+      # - SERVER_HOST=localhost
+      # - FRONTEND_HOST=localhost
+      # - FRONTEND_URL=http://localhost:80
+    entrypoint: /bin/sh
+    command:
+         - "-c"
+         - "FRONTEND_URL=$$UFFIZZI_URL/ /usr/src/app/entrypoint.sh gunicorn the_guide.wsgi -b 0.0.0.0:8000 -w 2"
     deploy:
           resources:
             limits:
