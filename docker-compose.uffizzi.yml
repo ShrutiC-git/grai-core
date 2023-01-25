@@ -1,0 +1,42 @@
+version: "3.7"
+
+x-uffizzi:
+  ingress:
+    service: frontend
+    port: 80
+
+services:
+  the_guide:
+    image: "${SERVER_IMAGE}"
+    # build: ./grai-server/app
+    volumes:
+      - ./app/:/usr/src/app/
+    ports:
+      - 8000:8000
+    environment:
+      - DB_HOST=127.0.0.1
+      - DB_PORT=5432
+      - DB_NAME=grai
+      - DB_USER=grai
+      - DB_PASSWORD=grai
+      - DJANGO_SUPERUSER_USERNAME=null@grai.io
+      - DJANGO_SUPERUSER_PASSWORD=super_secret
+      - DJANGO_SUPERUSER_WORKSPACE=Workspace1
+      - SERVER_HOST=localhost
+      - FRONTEND_HOST=localhost
+      - FRONTEND_URL=http://localhost:80
+  
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=grai
+      - POSTGRES_PASSWORD=grai
+      - POSTGRES_DB=grai
+    ports:
+      - 5432:5432
+  
+  frontend:
+    image: "${FRONTEND_IMAGE}"
+    # build: ../grai-frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
