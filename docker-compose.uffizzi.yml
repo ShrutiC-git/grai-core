@@ -40,6 +40,10 @@ services:
       - POSTGRES_USER=grai
       - POSTGRES_PASSWORD=grai
       - POSTGRES_DB=grai
+      - PGDATA=/tmp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./uffizzi-db-script/:/docker-entrypoint-initdb.d/  
     ports:
       - 5432:5432
   
@@ -62,3 +66,5 @@ services:
     volumes:
       - ./nginx-uffizzi:/etc/nginx
               
+volumes:
+  postgres_data:
