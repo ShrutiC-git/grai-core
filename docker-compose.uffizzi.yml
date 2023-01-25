@@ -47,7 +47,7 @@ services:
     entrypoint: /bin/sh
     command:
          - "-c"
-         - "REACT_APP_API_URL=$$UFFIZZI_URL/api && endpoint=$$UFFIZZI_URL/api/graphql /usr/share/nginx/html/env.sh && nginx -g \"daemon off;\""
+         - "REACT_APP_API_URL=$$UFFIZZI_URL/api /usr/share/nginx/html/env.sh && nginx -g \"daemon off;\""
     deploy:
           resources:
             limits:
