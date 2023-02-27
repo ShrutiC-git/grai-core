@@ -12,7 +12,8 @@ echo "PostgreSQL started"
 export GRAI_SERVER_VERSION=`poetry version -s`
 
 # Generate a default random key
-DEFAULT_KEY=`cat /dev/urandom | env LC_ALL=C tr -dc 'a-zA-Z0-9' | fold -w 50 | head -n 1`
+DEFAULT_KEY='THIS_IS_A_SECRET_KEY'
+# DEFAULT_KEY=`cat /dev/urandom | env LC_ALL=C tr -dc 'a-zA-Z0-9' | fold -w 50 | head -n 1`
 export SECRET_KEY=${SECRET_KEY:-$DEFAULT_KEY}
 
 
