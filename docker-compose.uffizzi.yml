@@ -22,7 +22,6 @@ services:
       - DJANGO_SUPERUSER_USERNAME=null@grai.io
       - DJANGO_SUPERUSER_PASSWORD=super_secret
       - DJANGO_SUPERUSER_WORKSPACE=Workspace1
-      - SERVER_HOST=localhost
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - FRONTEND_HOST=localhost
@@ -81,7 +80,6 @@ services:
       - DJANGO_SUPERUSER_USERNAME=null@grai.io
       - DJANGO_SUPERUSER_PASSWORD=super_secret
       - DJANGO_SUPERUSER_WORKSPACE=Workspace1
-      - SERVER_HOST=localhost
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - SECRET_KEY="THIS_IS_A_SECRET_KEY" 
@@ -109,7 +107,6 @@ services:
       - DJANGO_SUPERUSER_USERNAME=null@grai.io
       - DJANGO_SUPERUSER_PASSWORD=super_secret
       - DJANGO_SUPERUSER_WORKSPACE=Workspace1
-      - SERVER_HOST=localhost
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - SECRET_KEY="THIS_IS_A_SECRET_KEY" 
