@@ -81,6 +81,7 @@ services:
       - SERVER_HOST=localhost
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
+      - SECRET_KEY = "This-Is-A-Test_key"
     entrypoint: /bin/sh
     command:
          - "-c"
@@ -103,6 +104,7 @@ services:
       - SERVER_HOST=localhost
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
+      - SECRET_KEY = "This-Is-A-Test_key"
     entrypoint: /bin/sh
     command:
          - "-c"
