@@ -25,6 +25,8 @@ services:
       - SERVER_HOST=localhost
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
+      - FRONTEND_HOST=localhost
+      - FRONTEND_URL=http://localhost:3000
     # entrypoint: /bin/sh
     # command:
     #      - "-c"
@@ -45,6 +47,8 @@ services:
   
   frontend:
     image: "${FRONTEND_IMAGE}"
+    ports:
+      - 3000:80
     entrypoint: /bin/sh
     command:
          - "-c"
@@ -81,11 +85,9 @@ services:
       - SERVER_HOST=localhost
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
-      - SECRET_KEY="THIS_IS_A_SECRET_KEY" 
-    # entrypoint: /bin/sh
-    # command:
-    #      - "-c"
-    #      - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celeryworker"
+      - SECRET_KEY="THIS_IS_A_SECRET_KEY"
+      - FRONTEND_HOST=localhost
+      - FRONTEND_URL=http://localhost:3000
     deploy:
           resources:
             limits:
@@ -109,10 +111,8 @@ services:
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - SECRET_KEY="THIS_IS_A_SECRET_KEY" 
-    # entrypoint: /bin/sh
-    # command:
-    #      - "-c"
-    #      - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celerybeat"  
+      - FRONTEND_HOST=localhost
+      - FRONTEND_URL=http://localhost:3000
     deploy:
           resources:
             limits:
