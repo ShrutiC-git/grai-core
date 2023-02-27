@@ -64,7 +64,7 @@ services:
     image: "${SERVER_IMAGE}"
     command: 
     - "-c"
-    - "export SECRET_KEY='THIS_IS_A_SECRET_KEY' /start-celerybeat"
+    - "export SECRET_KEY='THIS_IS_A_SECRET_KEY' && /start-celerybeat"
     volumes:
       - ./grai-server/app/:/usr/src/app/
     environment:
@@ -104,7 +104,7 @@ services:
       - SECRET_KEY="THIS_IS_A_SECRET_KEY" 
     command: 
     - "-c"
-    - "export SECRET_KEY='THIS_IS_A_SECRET_KEY' /start-celerybeat"
+    - "export SECRET_KEY='THIS_IS_A_SECRET_KEY' && /start-celerybeat"
     deploy:
           resources:
             limits:
