@@ -82,11 +82,11 @@ services:
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - SECRET_KEY="THIS_IS_A_SECRET_KEY" 
-    command: /start-celeryworker
-    # entrypoint: /bin/sh
-    # command:
-    #     #  - "-c"
-    #      - "/start-celeryworker"
+    # command: /start-celeryworker
+    entrypoint: /bin/sh
+    command:
+         - "-c"
+         - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celeryworker"
     deploy:
           resources:
             limits:
@@ -109,11 +109,11 @@ services:
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - SECRET_KEY="THIS_IS_A_SECRET_KEY" 
-    # entrypoint: /bin/sh
-    command: /start-celerybeat
-    # command:
-    #      - "-c"
-    #      - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celerybeat"  
+    # command: /start-celerybeat
+    entrypoint: /bin/sh
+    command:
+         - "-c"
+         - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celerybeat"  
     deploy:
           resources:
             limits:
