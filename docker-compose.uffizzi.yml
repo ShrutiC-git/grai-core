@@ -41,11 +41,7 @@ services:
       - POSTGRES_PASSWORD=grai
       - POSTGRES_DB=grai
     ports:
-      - 5432:5432
-    deploy:
-          resources:
-            limits:
-              memory: 500M    
+      - 5432:5432   
   
   frontend:
     image: "${FRONTEND_IMAGE}"
@@ -88,11 +84,8 @@ services:
     entrypoint: /bin/sh
     command:
          - "-c"
-         - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celeryworker"
-    deploy:
-          resources:
-            limits:
-              memory: 2000M  
+         - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celeryworker" 
+  
   celery_beat_worker:
     image: "${SERVER_IMAGE}"
     volumes:
@@ -112,8 +105,4 @@ services:
     entrypoint: /bin/sh
     command:
          - "-c"
-         - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celerybeat"
-    deploy:
-          resources:
-            limits:
-              memory: 2000M        
+         - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celerybeat"     
