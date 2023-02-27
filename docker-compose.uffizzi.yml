@@ -23,8 +23,8 @@ services:
       - DJANGO_SUPERUSER_PASSWORD=super_secret
       - DJANGO_SUPERUSER_WORKSPACE=Workspace1
       - SERVER_HOST=localhost
-      - CELERY_BROKER=redis://0.0.0.0:6379/0
-      - CELERY_BACKEND=redis://0.0.0.0:6379/0
+      - CELERY_BROKER=redis://127.0.0.1:6379/0
+      - CELERY_BACKEND=redis://127.0.0.1:6379/0
     entrypoint: /bin/sh
     command:
          - "-c"
@@ -56,7 +56,6 @@ services:
   
   redis:
     image: redis:7-alpine
-    restart: always
     ports:
       - "6379:6379"             
               
@@ -79,8 +78,8 @@ services:
       - DJANGO_SUPERUSER_PASSWORD=super_secret
       - DJANGO_SUPERUSER_WORKSPACE=Workspace1
       - SERVER_HOST=localhost
-      - CELERY_BROKER=redis://0.0.0.0:6379/0
-      - CELERY_BACKEND=redis://0.0.0.0:6379/0
+      - CELERY_BROKER=redis://127.0.0.1:6379/0
+      - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - SECRET_KEY="THIS_IS_A_SECRET_KEY" 
     entrypoint: /bin/sh
     command:
@@ -105,8 +104,8 @@ services:
       - DJANGO_SUPERUSER_PASSWORD=super_secret
       - DJANGO_SUPERUSER_WORKSPACE=Workspace1
       - SERVER_HOST=localhost
-      - CELERY_BROKER=redis://0.0.0.0:6379/0
-      - CELERY_BACKEND=redis://0.0.0.0:6379/0
+      - CELERY_BROKER=redis://127.0.0.1:6379/0
+      - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - SECRET_KEY="THIS_IS_A_SECRET_KEY" 
     entrypoint: /bin/sh
     command:
@@ -122,7 +121,7 @@ services:
     ports:
       - 5557:5555
     environment:
-      - CELERY_BROKER_URL=redis://0.0.0.0:6379/0
+      - CELERY_BROKER_URL=redis://127.0.0.1:6379/0
     deploy:
           resources:
             limits:
