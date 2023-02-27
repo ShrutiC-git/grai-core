@@ -22,6 +22,9 @@ services:
       - DJANGO_SUPERUSER_USERNAME=null@grai.io
       - DJANGO_SUPERUSER_PASSWORD=super_secret
       - DJANGO_SUPERUSER_WORKSPACE=Workspace1
+      - SERVER_HOST=localhost
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
     entrypoint: /bin/sh
     command:
          - "-c"
@@ -61,3 +64,46 @@ services:
     image: nginx:alpine
     volumes:
       - ./nginx-uffizzi:/etc/nginx
+      
+  celery_worker:
+    image: "${SERVER_IMAGE}"
+    volumes:
+      - ./grai-server/app/:/usr/src/app/
+    environment:
+      - DB_HOST=127.0.0.1
+      - DB_PORT=5432
+      - DB_NAME=grai
+      - DB_USER=grai
+      - DB_PASSWORD=grai
+      - DJANGO_SUPERUSER_USERNAME=null@grai.io
+      - DJANGO_SUPERUSER_PASSWORD=super_secret
+      - DJANGO_SUPERUSER_WORKSPACE=Workspace1
+      - SERVER_HOST=localhost
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    entrypoint: /bin/sh
+    command:
+         - "-c"
+         - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celeryworker"
+    scale: 1
+
+  celery_beat_worker:
+    image: "${SERVER_IMAGE}"
+    volumes:
+      - ./grai-server/app/:/usr/src/app/
+    environment:
+      - DB_HOST=127.0.0.1
+      - DB_PORT=5432
+      - DB_NAME=grai
+      - DB_USER=grai
+      - DB_PASSWORD=grai
+      - DJANGO_SUPERUSER_USERNAME=null@grai.io
+      - DJANGO_SUPERUSER_PASSWORD=super_secret
+      - DJANGO_SUPERUSER_WORKSPACE=Workspace1
+      - SERVER_HOST=localhost
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    entrypoint: /bin/sh
+    command:
+         - "-c"
+         - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celerybeat"
