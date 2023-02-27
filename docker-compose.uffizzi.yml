@@ -26,7 +26,7 @@ services:
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - FRONTEND_HOST=localhost
-      - FRONTEND_URL=http://localhost:3000
+      - FRONTEND_URL=http://localhost:80
     # entrypoint: /bin/sh
     # command:
     #      - "-c"
