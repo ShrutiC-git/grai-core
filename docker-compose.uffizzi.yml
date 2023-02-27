@@ -25,10 +25,10 @@ services:
       - SERVER_HOST=localhost
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
-    entrypoint: /bin/sh
-    command:
-         - "-c"
-         - "FRONTEND_URL=$$UFFIZZI_URL/ /usr/src/app/entrypoint.sh gunicorn the_guide.wsgi -b 127.0.0.1:8000 -w 2"
+    # entrypoint: /bin/sh
+    # command:
+    #      - "-c"
+    #      - "FRONTEND_URL=$$UFFIZZI_URL/ /usr/src/app/entrypoint.sh gunicorn the_guide.wsgi -b 127.0.0.1:8000 -w 2"
     deploy:
           resources:
             limits:
@@ -69,6 +69,7 @@ services:
     image: "${SERVER_IMAGE}"
     volumes:
       - ./grai-server/app/:/usr/src/app/
+    command: /start-celeryworker  
     environment:
       - DB_HOST=127.0.0.1
       - DB_PORT=5432
@@ -82,11 +83,10 @@ services:
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - SECRET_KEY="THIS_IS_A_SECRET_KEY" 
-    # command: /start-celeryworker
-    entrypoint: /bin/sh
-    command:
-         - "-c"
-         - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celeryworker"
+    # entrypoint: /bin/sh
+    # command:
+    #      - "-c"
+    #      - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celeryworker"
     deploy:
           resources:
             limits:
@@ -109,11 +109,11 @@ services:
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - SECRET_KEY="THIS_IS_A_SECRET_KEY" 
-    # command: /start-celerybeat
-    entrypoint: /bin/sh
-    command:
-         - "-c"
-         - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celerybeat"  
+    command: /start-celerybeat
+    # entrypoint: /bin/sh
+    # command:
+    #      - "-c"
+    #      - "FRONTEND_URL=$$UFFIZZI_URL/ /start-celerybeat"  
     deploy:
           resources:
             limits:
