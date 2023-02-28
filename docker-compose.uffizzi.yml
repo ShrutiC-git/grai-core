@@ -25,8 +25,6 @@ services:
       - SERVER_HOST=localhost
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
-      - FRONTEND_HOST=localhost
-      - FRONTEND_URL=http://localhost:80
     deploy:
           resources:
             limits:
@@ -81,8 +79,6 @@ services:
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - SECRET_KEY="123456789" 
-      - FRONTEND_HOST=localhost
-      - FRONTEND_URL=http://localhost:80
     deploy:
           resources:
             limits:
@@ -105,8 +101,6 @@ services:
       - CELERY_BROKER=redis://127.0.0.1:6379/0
       - CELERY_BACKEND=redis://127.0.0.1:6379/0
       - SECRET_KEY="123456789" 
-      - FRONTEND_HOST=localhost
-      - FRONTEND_URL=http://localhost:80
     command: 
     - "/start-celerybeat"
     deploy:
