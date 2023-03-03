@@ -41,7 +41,7 @@ services:
     deploy:
           resources:
             limits:
-              memory: 500M  
+              memory: 2000M  
    
   frontend:
     image: "${FRONTEND_IMAGE}"
@@ -61,7 +61,7 @@ services:
     deploy:
           resources:
             limits:
-              memory: 500M             
+              memory: 2000M             
               
   nginx:
     image: nginx:alpine
