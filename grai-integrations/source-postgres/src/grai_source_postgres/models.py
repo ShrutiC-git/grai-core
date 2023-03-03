@@ -13,6 +13,9 @@ class ID(PostgresNode):
     namespace: str
     full_name: str
 
+    class Config:
+        extra = "forbid"
+
 
 class TableID(ID):
     table_schema: str
@@ -33,10 +36,20 @@ class ColumnID(ID):
     def make_full_name(cls, values):
         full_name = values.get("full_name", None)
         if values.get("full_name", None) is None:
-            values[
-                "full_name"
-            ] = f"{values['table_schema']}.{values['table_name']}.{values['name']}"
+            values["full_name"] = f"{values['table_schema']}.{values['table_name']}.{values['name']}"
         return values
+
+
+class ColumnConstraint(Enum):
+    primary_key = "p"
+    unique = "u"
+    foreign_key = "f"
+    check = "c"
+    trigger = "t"
+    exclusion = "x"
+
+
+UNIQUE_COLUMN_CONSTRAINTS = {ColumnConstraint.primary_key.value, ColumnConstraint.unique.value}
 
 
 class Column(PostgresNode):
@@ -47,6 +60,7 @@ class Column(PostgresNode):
     is_nullable: bool
     namespace: str
     default_value: Any = Field(alias="column_default")
+    column_constraint: Optional[ColumnConstraint]
     is_pk: Optional[bool] = False
     full_name: Optional[str] = None
 
@@ -68,8 +82,8 @@ class Constraint(str, Enum):
 
 
 class Edge(BaseModel):
-    source: Union[TableID, ColumnID]
-    destination: Union[TableID, ColumnID]
+    source: Union[ColumnID, TableID]
+    destination: Union[ColumnID, TableID]
     definition: Optional[str]
     constraint_type: Constraint
     metadata: Optional[Dict] = None

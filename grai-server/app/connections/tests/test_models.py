@@ -2,14 +2,14 @@ import datetime
 import uuid
 
 import pytest
+from django_celery_beat.models import PeriodicTask
 
 from connections.models import Connection, Connector, Run
-from workspaces.models import Workspace
+from workspaces.models import Organisation, Workspace
 
 
 @pytest.mark.django_db
 def test_connector_created():
-    workspace = Workspace.objects.create(name="W1")
     connector = Connector.objects.create(name="C1")
 
     assert connector.id == uuid.UUID(str(connector.id))
@@ -19,15 +19,12 @@ def test_connector_created():
 
 @pytest.mark.django_db
 def test_run_created():
-    workspace = Workspace.objects.create(name="W1")
+    organisation = Organisation.objects.create(name="O1")
+    workspace = Workspace.objects.create(name="W1", organisation=organisation)
     connector = Connector.objects.create(name="C1")
-    connection = Connection.objects.create(
-        workspace=workspace, connector=connector, name="Connection 1"
-    )
+    connection = Connection.objects.create(workspace=workspace, connector=connector, name="Connection 1")
 
-    run = Run.objects.create(
-        workspace=workspace, connection=connection, status="success"
-    )
+    run = Run.objects.create(workspace=workspace, connection=connection, status="success")
 
     assert run.id == uuid.UUID(str(run.id))
     assert str(run) == str(run.id)
@@ -42,11 +39,10 @@ def test_run_created():
 class TestConnection:
     @pytest.mark.django_db
     def test_connection_created(self):
-        workspace = Workspace.objects.create(name="W1")
+        organisation = Organisation.objects.create(name="O1")
+        workspace = Workspace.objects.create(name="W1", organisation=organisation)
         connector = Connector.objects.create(name="C1")
-        connection = Connection.objects.create(
-            workspace=workspace, connector=connector, name="Connection 1"
-        )
+        connection = Connection.objects.create(workspace=workspace, connector=connector, name="Connection 1")
 
         assert connection.id == uuid.UUID(str(connection.id))
         assert str(connection) == "Connection 1"
@@ -54,11 +50,10 @@ class TestConnection:
 
     @pytest.mark.django_db
     def test_connection_updated_with_schedule(self):
-        workspace = Workspace.objects.create(name="W1")
+        organisation = Organisation.objects.create(name="O1")
+        workspace = Workspace.objects.create(name="W1", organisation=organisation)
         connector = Connector.objects.create(name="C1")
-        connection = Connection.objects.create(
-            workspace=workspace, connector=connector, name="Connection 1"
-        )
+        connection = Connection.objects.create(workspace=workspace, connector=connector, name="Connection 1")
 
         connection.schedules = {
             "type": "cron",
@@ -80,7 +75,8 @@ class TestConnection:
 
     @pytest.mark.django_db
     def test_connection_updated_with_existing_task(self):
-        workspace = Workspace.objects.create(name="W1")
+        organisation = Organisation.objects.create(name="O1")
+        workspace = Workspace.objects.create(name="W1", organisation=organisation)
         connector = Connector.objects.create(name="C1")
         connection = Connection.objects.create(
             workspace=workspace,
@@ -118,11 +114,10 @@ class TestConnection:
 
     @pytest.mark.django_db
     def test_connection_updated_with_incorrect_schedule(self):
-        workspace = Workspace.objects.create(name="W1")
+        organisation = Organisation.objects.create(name="O1")
+        workspace = Workspace.objects.create(name="W1", organisation=organisation)
         connector = Connector.objects.create(name="C1")
-        connection = Connection.objects.create(
-            workspace=workspace, connector=connector, name="Connection 1"
-        )
+        connection = Connection.objects.create(workspace=workspace, connector=connector, name="Connection 1")
 
         connection.schedules = {
             "type": "blah",
@@ -132,3 +127,40 @@ class TestConnection:
             connection.save()
 
         assert str(e_info.value) == "Schedule type not found"
+
+    @pytest.mark.django_db
+    def test_connection_updated_remove_schedule(self):
+        organisation = Organisation.objects.create(name="O1")
+        workspace = Workspace.objects.create(name="W1", organisation=organisation)
+        connector = Connector.objects.create(name="C1")
+        connection = Connection.objects.create(workspace=workspace, connector=connector, name="Connection 1")
+
+        connection.schedules = {
+            "type": "cron",
+            "cron": {
+                "minutes": "*",
+                "hours": "*",
+                "day_of_week": "*",
+                "day_of_month": "*",
+                "month_of_year": "*",
+            },
+        }
+
+        connection.save()
+
+        assert connection.id == uuid.UUID(str(connection.id))
+        assert str(connection) == "Connection 1"
+        assert connection.name == "Connection 1"
+        assert connection.task is not None
+
+        task = connection.task
+
+        connection.schedules = None
+        connection.save()
+
+        assert connection.task is None
+
+        with pytest.raises(PeriodicTask.DoesNotExist) as e_info:
+            PeriodicTask.objects.get(id=task.id)
+
+        assert str(e_info.value) == "PeriodicTask matching query does not exist."

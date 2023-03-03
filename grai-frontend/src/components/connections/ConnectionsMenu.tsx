@@ -1,3 +1,4 @@
+import React from "react"
 import { Delete, Edit, MoreHoriz } from "@mui/icons-material"
 import {
   IconButton,
@@ -6,18 +7,20 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material"
+import useWorkspace from "helpers/useWorkspace"
 import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state"
-import React from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import ConnectionRefresh, { Connection } from "./ConnectionRefresh"
+import ConnectionRun, { Connection } from "./ConnectionRun"
 
 type ConnectionsMenuProps = {
   connection: Connection
+  workspaceId: string
 }
 
-const ConnectionsMenu: React.FC<ConnectionsMenuProps> = ({ connection }) => {
-  const { workspaceId } = useParams()
-  const navigate = useNavigate()
+const ConnectionsMenu: React.FC<ConnectionsMenuProps> = ({
+  connection,
+  workspaceId,
+}) => {
+  const { workspaceNavigate } = useWorkspace()
 
   return (
     <PopupState variant="popover">
@@ -36,18 +39,19 @@ const ConnectionsMenu: React.FC<ConnectionsMenuProps> = ({ connection }) => {
             }}
           >
             <MenuItem
-              onClick={() =>
-                navigate(
-                  `/workspaces/${workspaceId}/connections/${connection.id}`
-                )
-              }
+              onClick={() => workspaceNavigate(`connections/${connection.id}`)}
             >
               <ListItemIcon>
                 <Edit />
               </ListItemIcon>
               <ListItemText primary="Edit" />
             </MenuItem>
-            <ConnectionRefresh connection={connection} menuItem disabled />
+            <ConnectionRun
+              connection={connection}
+              workspaceId={workspaceId}
+              menuItem
+              disabled //Need to handle menu close without stopping query and handle polling
+            />
             <MenuItem disabled>
               <ListItemIcon>
                 <Delete />

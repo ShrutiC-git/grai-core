@@ -1,9 +1,10 @@
+import React from "react"
 import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material"
 import { Box, Divider, Menu, MenuItem, Stack, Typography } from "@mui/material"
-import React from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import useWorkspace from "helpers/useWorkspace"
 import { Handle, Position } from "reactflow"
 import theme from "theme"
+import DataSourceIcon from "./DataSourceIcon"
 import HiddenTableButton from "./HiddenTableButton"
 
 interface Column {
@@ -11,23 +12,27 @@ interface Column {
   name: string
 }
 
+export type BaseNodeData = {
+  id: string
+  label: string
+  data_source: string
+  highlight: boolean
+  columns: Column[]
+  hiddenSourceTables: string[]
+  hiddenDestinationTables: string[]
+  expanded: boolean
+  onExpand: (value: boolean) => void
+  onShow: (values: string[]) => void
+  searchHighlight: boolean
+  searchDim: boolean
+}
+
 interface BaseNodeProps {
-  data: {
-    id: string
-    label: string
-    highlight: boolean
-    columns: Column[]
-    hiddenSourceTables: string[]
-    hiddenDestinationTables: string[]
-    expanded: boolean
-    onExpand: (value: boolean) => void
-    onShow: (values: string[]) => void
-  }
+  data: BaseNodeData
 }
 
 const BaseNode: React.FC<BaseNodeProps> = ({ data }) => {
-  const { workspaceId } = useParams()
-  const navigate = useNavigate()
+  const { workspaceNavigate } = useWorkspace()
   const [contextMenu, setContextMenu] = React.useState<{
     mouseX: number
     mouseY: number
@@ -65,6 +70,22 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data }) => {
     handleClose()
   }
 
+  const borderColor = data.highlight
+    ? theme.palette.primary.contrastText
+    : data.searchDim
+    ? "#999"
+    : "#555"
+
+  const backgroundColor = data.searchHighlight
+    ? theme.palette.info.light
+    : "white"
+
+  const color = data.searchDim
+    ? theme.palette.grey[500]
+    : data.searchHighlight
+    ? theme.palette.info.contrastText
+    : undefined
+
   return (
     <>
       <Box
@@ -74,15 +95,15 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data }) => {
           borderWidth: 1,
           borderStyle: "solid",
           borderRadius: 1,
-          borderColor: data.highlight
-            ? theme.palette.primary.contrastText
-            : "#555",
+          borderColor,
           minWidth: 300,
           cursor: "auto",
-          backgroundColor: "white",
+          backgroundColor,
+          color,
         }}
       >
         <Handle
+          id="all"
           type="target"
           position={"left" as Position}
           style={{
@@ -103,7 +124,10 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data }) => {
           {data.hiddenSourceTables.length > 0 && (
             <HiddenTableButton position="right" onClick={handleShowSources} />
           )}
-          <Typography variant="h6">{data.label}</Typography>
+          <Box sx={{ display: "flex" }}>
+            <DataSourceIcon dataSource={data.data_source} />
+            <Typography variant="h6">{data.label}</Typography>
+          </Box>
           {data.columns.length > 0 && (
             <>
               <Divider sx={{ mt: 0.5, mb: 1 }} />
@@ -166,6 +190,7 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data }) => {
           </Stack>
         )}
         <Handle
+          id="all"
           type="source"
           position={"right" as Position}
           style={{
@@ -202,11 +227,7 @@ const BaseNode: React.FC<BaseNodeProps> = ({ data }) => {
         >
           Show downstream dependents
         </MenuItem>
-        <MenuItem
-          onClick={() =>
-            navigate(`/workspaces/${workspaceId}/nodes/${data.id}`)
-          }
-        >
+        <MenuItem onClick={() => workspaceNavigate(`tables/${data.id}`)}>
           Show profile for this table
         </MenuItem>
       </Menu>

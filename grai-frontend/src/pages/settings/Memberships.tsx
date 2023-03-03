@@ -1,19 +1,20 @@
+import React from "react"
 import { gql, useQuery } from "@apollo/client"
 import { Box } from "@mui/material"
+import useWorkspace from "helpers/useWorkspace"
+import NotFound from "pages/NotFound"
 import MembershipsHeader from "components/settings/memberships/MembershipsHeader"
 import MembershipsTable from "components/settings/memberships/MembershipsTable"
 import SettingsLayout from "components/settings/SettingsLayout"
 import GraphError from "components/utils/GraphError"
-import React from "react"
-import { useParams } from "react-router-dom"
 import {
   GetMemberships,
   GetMembershipsVariables,
 } from "./__generated__/GetMemberships"
 
 export const GET_MEMBERSHIPS = gql`
-  query GetMemberships($workspaceId: ID!) {
-    workspace(pk: $workspaceId) {
+  query GetMemberships($organisationName: String!, $workspaceName: String!) {
+    workspace(organisationName: $organisationName, name: $workspaceName) {
       id
       memberships {
         id
@@ -32,23 +33,28 @@ export const GET_MEMBERSHIPS = gql`
 `
 
 const Memberships: React.FC = () => {
-  const { workspaceId } = useParams()
+  const { organisationName, workspaceName } = useWorkspace()
 
   const { loading, error, data } = useQuery<
     GetMemberships,
     GetMembershipsVariables
   >(GET_MEMBERSHIPS, {
     variables: {
-      workspaceId: workspaceId ?? "",
+      organisationName,
+      workspaceName,
     },
   })
 
   if (error) return <GraphError error={error} />
 
+  const workspace = data?.workspace
+
+  if (!loading && !workspace) return <NotFound />
+
   return (
     <SettingsLayout>
       <Box sx={{ p: 3 }}>
-        <MembershipsHeader />
+        <MembershipsHeader workspaceId={workspace?.id} />
         <MembershipsTable
           memberships={data?.workspace?.memberships ?? []}
           loading={loading}

@@ -1,5 +1,5 @@
-import { Container, Toolbar } from "@mui/material"
 import React, { ReactNode, useState } from "react"
+import { Container, Toolbar } from "@mui/material"
 import WizardAppBar from "./WizardAppBar"
 
 export type ElementOptions = {
@@ -19,13 +19,13 @@ export type WizardSteps = WizardStep[]
 type WizardLayoutProps = {
   title: string
   steps: WizardSteps
-  closeRoute: (workspaceId?: string) => string
+  onClose: () => void
 }
 
 const WizardLayout: React.FC<WizardLayoutProps> = ({
   title,
   steps,
-  closeRoute,
+  onClose,
 }) => {
   const [activeStep, setActiveStep] = useState(0)
 
@@ -50,7 +50,7 @@ const WizardLayout: React.FC<WizardLayoutProps> = ({
         title={title}
         steps={steps}
         activeStep={activeStep}
-        closeRoute={closeRoute}
+        onClose={onClose}
       />
       <Toolbar />
       <Container maxWidth="lg">{stepElement}</Container>

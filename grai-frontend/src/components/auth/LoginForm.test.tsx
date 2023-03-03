@@ -1,12 +1,13 @@
 import React from "react"
 import userEvent from "@testing-library/user-event"
-import { renderWithRouter, screen, waitFor } from "testing"
-import LoginForm from "./LoginForm"
+import { GraphQLError } from "graphql"
+import { render, screen, waitFor } from "testing"
+import LoginForm, { LOGIN } from "./LoginForm"
 
 test("submit", async () => {
   const user = userEvent.setup()
 
-  renderWithRouter(<LoginForm />, {
+  render(<LoginForm />, {
     guestRoute: true,
     loggedIn: false,
     path: "/login",
@@ -27,16 +28,31 @@ test("submit", async () => {
   await user.click(screen.getByRole("button", { name: /login/i }))
 
   await waitFor(() => {
-    expect(screen.getByText("New Page")).toBeTruthy()
+    expect(screen.getByText("New Page")).toBeInTheDocument()
   })
 })
 
 test("error", async () => {
   const user = userEvent.setup()
 
-  renderWithRouter(<LoginForm />, {
-    loggedIn: false,
-    throwError: true,
+  const mocks = [
+    {
+      request: {
+        query: LOGIN,
+        variables: {
+          username: "email@grai.io",
+          password: "password",
+        },
+      },
+      result: {
+        errors: [new GraphQLError("Error!")],
+      },
+    },
+  ]
+
+  render(<LoginForm />, {
+    withRouter: true,
+    mocks,
   })
 
   await user.type(
@@ -52,6 +68,6 @@ test("error", async () => {
   await user.click(screen.getByRole("button", { name: /login/i }))
 
   await waitFor(() => {
-    expect(screen.getByText("Error")).toBeTruthy()
+    expect(screen.getByText("Error!")).toBeInTheDocument()
   })
 })

@@ -1,12 +1,13 @@
 import React from "react"
 import userEvent from "@testing-library/user-event"
-import { fireEvent, renderWithRouter, screen, waitFor } from "testing"
-import BaseNode from "./BaseNode"
 import { ReactFlowProvider } from "reactflow"
+import { fireEvent, render, screen, waitFor } from "testing"
+import BaseNode, { BaseNodeData } from "./BaseNode"
 
-const data = {
+const data: BaseNodeData = {
   id: "1234",
   label: "Node Label",
+  data_source: "test",
   highlight: false,
   columns: [
     {
@@ -19,34 +20,42 @@ const data = {
   expanded: false,
   onExpand: (value: boolean) => {},
   onShow: (values: string[]) => {},
+  searchHighlight: false,
+  searchDim: false,
 }
 
 test("renders", async () => {
-  renderWithRouter(
+  render(
     <ReactFlowProvider>
       <BaseNode data={data} />
-    </ReactFlowProvider>
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
   )
 
   await waitFor(() => {
-    expect(screen.getByText("Node Label")).toBeTruthy()
+    expect(screen.getByText("Node Label")).toBeInTheDocument()
   })
 })
 
 test("renders no columns", async () => {
-  renderWithRouter(
+  render(
     <ReactFlowProvider>
       <BaseNode data={{ ...data, columns: [] }} />
-    </ReactFlowProvider>
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
   )
 
   await waitFor(() => {
-    expect(screen.getByText("Node Label")).toBeTruthy()
+    expect(screen.getByText("Node Label")).toBeInTheDocument()
   })
 })
 
 test("renders multiple columns", async () => {
-  renderWithRouter(
+  render(
     <ReactFlowProvider>
       <BaseNode
         data={{
@@ -60,24 +69,27 @@ test("renders multiple columns", async () => {
           expanded: true,
         }}
       />
-    </ReactFlowProvider>
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
   )
 
   await waitFor(() => {
-    expect(screen.getByText("Node Label")).toBeTruthy()
+    expect(screen.getByText("Node Label")).toBeInTheDocument()
   })
 
   await waitFor(() => {
-    expect(screen.getByText("c1")).toBeTruthy()
+    expect(screen.getByText("c1")).toBeInTheDocument()
   })
 
   await waitFor(() => {
-    expect(screen.getByText("c2")).toBeTruthy()
+    expect(screen.getByText("c2")).toBeInTheDocument()
   })
 })
 
 test("highlight", async () => {
-  renderWithRouter(
+  render(
     <ReactFlowProvider>
       <BaseNode
         data={{
@@ -85,16 +97,59 @@ test("highlight", async () => {
           highlight: true,
         }}
       />
-    </ReactFlowProvider>
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
   )
 
   await waitFor(() => {
-    expect(screen.getByText("Node Label")).toBeTruthy()
+    expect(screen.getByText("Node Label")).toBeInTheDocument()
+  })
+})
+
+test("search highlight", async () => {
+  render(
+    <ReactFlowProvider>
+      <BaseNode
+        data={{
+          ...data,
+          searchHighlight: true,
+        }}
+      />
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
+  )
+
+  await waitFor(() => {
+    expect(screen.getByText("Node Label")).toBeInTheDocument()
+  })
+})
+
+test("search dim", async () => {
+  render(
+    <ReactFlowProvider>
+      <BaseNode
+        data={{
+          ...data,
+          searchDim: true,
+        }}
+      />
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
+  )
+
+  await waitFor(() => {
+    expect(screen.getByText("Node Label")).toBeInTheDocument()
   })
 })
 
 test("expanded", async () => {
-  renderWithRouter(
+  render(
     <ReactFlowProvider>
       <BaseNode
         data={{
@@ -102,25 +157,31 @@ test("expanded", async () => {
           expanded: true,
         }}
       />
-    </ReactFlowProvider>
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
   )
 
   await waitFor(() => {
-    expect(screen.getByText("Node Label")).toBeTruthy()
+    expect(screen.getByText("Node Label")).toBeInTheDocument()
   })
 
   await waitFor(() => {
-    expect(screen.getByText("c1")).toBeTruthy()
+    expect(screen.getByText("c1")).toBeInTheDocument()
   })
 })
 
 test("expand", async () => {
   const user = userEvent.setup()
 
-  renderWithRouter(
+  render(
     <ReactFlowProvider>
       <BaseNode data={data} />
-    </ReactFlowProvider>
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
   )
 
   await user.click(screen.getByTestId("ArrowDropDownIcon"))
@@ -129,10 +190,13 @@ test("expand", async () => {
 test("context menu", async () => {
   const user = userEvent.setup()
 
-  renderWithRouter(
+  render(
     <ReactFlowProvider>
       <BaseNode data={data} />
-    </ReactFlowProvider>
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
   )
 
   fireEvent.contextMenu(screen.getByText("Node Label"))
@@ -143,10 +207,13 @@ test("context menu", async () => {
 test("context menu show lineage", async () => {
   const user = userEvent.setup()
 
-  renderWithRouter(
+  render(
     <ReactFlowProvider>
       <BaseNode data={data} />
-    </ReactFlowProvider>
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
   )
 
   fireEvent.contextMenu(screen.getByText("Node Label"))
@@ -157,10 +224,13 @@ test("context menu show lineage", async () => {
 test("context menu show upstream dependents", async () => {
   const user = userEvent.setup()
 
-  renderWithRouter(
+  render(
     <ReactFlowProvider>
       <BaseNode data={data} />
-    </ReactFlowProvider>
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
   )
 
   fireEvent.contextMenu(screen.getByText("Node Label"))
@@ -173,10 +243,13 @@ test("context menu show upstream dependents", async () => {
 test("context menu show downstream dependents", async () => {
   const user = userEvent.setup()
 
-  renderWithRouter(
+  render(
     <ReactFlowProvider>
       <BaseNode data={data} />
-    </ReactFlowProvider>
+    </ReactFlowProvider>,
+    {
+      withRouter: true,
+    }
   )
 
   fireEvent.contextMenu(screen.getByText("Node Label"))
@@ -189,11 +262,11 @@ test("context menu show downstream dependents", async () => {
 test("context menu show profile", async () => {
   const user = userEvent.setup()
 
-  renderWithRouter(
+  render(
     <ReactFlowProvider>
       <BaseNode data={data} />
     </ReactFlowProvider>,
-    { routes: ["/workspaces/:workspaceId/nodes/:nodeId"] }
+    { routes: ["/:organisationName/:workspaceName/tables/:nodeId"] }
   )
 
   fireEvent.contextMenu(screen.getByText("Node Label"))
@@ -203,6 +276,6 @@ test("context menu show profile", async () => {
   )
 
   await waitFor(() => {
-    expect(screen.getByText("New Page")).toBeTruthy()
+    expect(screen.getByText("New Page")).toBeInTheDocument()
   })
 })

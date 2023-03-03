@@ -1,15 +1,15 @@
+import React from "react"
 import { gql, useMutation } from "@apollo/client"
 import { Dialog, DialogContent } from "@mui/material"
-import React from "react"
-import { useParams } from "react-router-dom"
+import { useSnackbar } from "notistack"
 import DialogTitle from "components/dialogs/DialogTitle"
-import CreateKeyForm, { Values } from "./CreateMembershipForm"
 import GraphError from "components/utils/GraphError"
 import {
   CreateMembership,
   CreateMembershipVariables,
 } from "./__generated__/CreateMembership"
-import { useSnackbar } from "notistack"
+import { NewMembership } from "./__generated__/NewMembership"
+import CreateKeyForm, { Values } from "./CreateMembershipForm"
 
 export const CREATE_MEMBERSHIP = gql`
   mutation CreateMembership(
@@ -29,24 +29,57 @@ export const CREATE_MEMBERSHIP = gql`
 `
 
 type CreateKeyDialogProps = {
+  workspaceId: string
   open: boolean
   onClose: () => void
 }
 
-const CreateKeyDialog: React.FC<CreateKeyDialogProps> = ({ open, onClose }) => {
-  const { workspaceId } = useParams()
+const CreateKeyDialog: React.FC<CreateKeyDialogProps> = ({
+  workspaceId,
+  open,
+  onClose,
+}) => {
   const { enqueueSnackbar } = useSnackbar()
 
   const [createMembership, { loading, error }] = useMutation<
     CreateMembership,
     CreateMembershipVariables
-  >(CREATE_MEMBERSHIP)
+  >(CREATE_MEMBERSHIP, {
+    update(cache, { data }) {
+      cache.modify({
+        id: cache.identify({
+          id: workspaceId,
+          __typename: "Workspace",
+        }),
+        fields: {
+          memberships(existingMemberships = []) {
+            if (!data?.createMembership) return
+
+            const newMembership = cache.writeFragment<NewMembership>({
+              data: data.createMembership,
+              fragment: gql`
+                fragment NewMembership on Membership {
+                  id
+                  role
+                  user {
+                    id
+                    username
+                  }
+                }
+              `,
+            })
+            return [...existingMemberships, newMembership]
+          },
+        },
+      })
+    },
+  })
 
   const handleSubmit = (values: Values) =>
     createMembership({
       variables: {
         ...values,
-        workspaceId: workspaceId ?? "",
+        workspaceId,
       },
     })
       .then(() => onClose())

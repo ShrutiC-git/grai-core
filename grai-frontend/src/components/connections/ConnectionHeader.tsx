@@ -1,3 +1,4 @@
+import React from "react"
 import { ContentCopy, KeyboardBackspace } from "@mui/icons-material"
 import {
   Box,
@@ -7,12 +8,10 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
+import useWorkspace from "helpers/useWorkspace"
+import { Link } from "react-router-dom"
 import RunStatus from "components/runs/RunStatus"
-import React from "react"
-import { Link, useParams } from "react-router-dom"
-import ConnectionRefresh, {
-  Connection as BaseConnection,
-} from "./ConnectionRefresh"
+import ConnectionRun, { Connection as BaseConnection } from "./ConnectionRun"
 
 interface Connection extends BaseConnection {
   name: string
@@ -20,14 +19,16 @@ interface Connection extends BaseConnection {
 
 type ConnectionHeaderProps = {
   connection: Connection
-  onRefresh?: () => void
+  workspaceId: string
+  onRun?: () => void
 }
 
 const ConnectionHeader: React.FC<ConnectionHeaderProps> = ({
   connection,
-  onRefresh,
+  workspaceId,
+  onRun,
 }) => {
-  const { workspaceId } = useParams()
+  const { routePrefix } = useWorkspace()
 
   return (
     <>
@@ -35,7 +36,7 @@ const ConnectionHeader: React.FC<ConnectionHeaderProps> = ({
         <Box>
           <Button
             component={Link}
-            to={`/workspaces/${workspaceId}/connections`}
+            to={`${routePrefix}/connections`}
             color="secondary"
             startIcon={<KeyboardBackspace />}
           >
@@ -58,7 +59,11 @@ const ConnectionHeader: React.FC<ConnectionHeaderProps> = ({
             <RunStatus run={connection.last_run} link sx={{ ml: 2 }} />
           )}
         </Box>
-        <ConnectionRefresh connection={connection} onRefresh={onRefresh} />
+        <ConnectionRun
+          connection={connection}
+          workspaceId={workspaceId}
+          onRun={onRun}
+        />
       </Box>
       <Divider />
     </>

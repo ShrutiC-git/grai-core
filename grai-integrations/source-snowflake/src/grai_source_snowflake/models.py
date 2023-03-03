@@ -13,16 +13,24 @@ class ID(SnowflakeNode):
     namespace: str
     full_name: str
 
+    class Config:
+        extra = "forbid"
+
 
 class TableID(ID):
     table_schema: str
 
     @root_validator(pre=True)
     def make_full_name(cls, values: Dict) -> Dict:
-        full_name = values.get("full_name", None)
         if values.get("full_name", None) is None:
             values["full_name"] = f"{values['table_schema']}.{values['name']}"
         return values
+
+
+def validate_quoted_string(string: str) -> str:
+    if string.startswith('"') and string.endswith('"'):
+        return string
+    return string.lower()
 
 
 class ColumnID(ID):
@@ -33,10 +41,12 @@ class ColumnID(ID):
     def make_full_name(cls, values: Dict) -> Dict:
         full_name = values.get("full_name", None)
         if values.get("full_name", None) is None:
-            values[
-                "full_name"
-            ] = f"{values['table_schema']}.{values['table_name']}.{values['name']}"
+            values["full_name"] = f"{values['table_schema']}.{values['table_name']}.{values['name']}"
         return values
+
+    @validator("table_name")
+    def validate_name(cls, value):
+        return validate_quoted_string(value)
 
 
 class Column(SnowflakeNode):
@@ -60,6 +70,10 @@ class Column(SnowflakeNode):
         result = f"{values['column_schema']}.{values['table']}.{values['name']}"
         return result
 
+    @validator("name", "table")
+    def validate_name(cls, value):
+        return validate_quoted_string(value)
+
 
 class Constraint(str, Enum):
     foreign_key = "f"
@@ -68,8 +82,8 @@ class Constraint(str, Enum):
 
 
 class Edge(BaseModel):
-    source: Union[TableID, ColumnID]
-    destination: Union[TableID, ColumnID]
+    source: Union[ColumnID, TableID]
+    destination: Union[ColumnID, TableID]
     definition: Optional[str]
     constraint_type: Constraint
     metadata: Optional[Dict] = None
@@ -94,12 +108,20 @@ class Table(SnowflakeNode):
     class Config:
         allow_population_by_field_name = True
 
+    @property
+    def id(self):
+        return self.table_schema, self.name
+
     @validator("full_name", always=True)
     def make_full_name(cls, full_name: Optional[str], values: Dict) -> str:
         if full_name is not None:
             return full_name
 
         return f"{values['table_schema']}.{values['name']}"
+
+    @validator("name")
+    def validate_name(cls, value):
+        return validate_quoted_string(value)
 
     def get_edges(self) -> List[Edge]:
         return [

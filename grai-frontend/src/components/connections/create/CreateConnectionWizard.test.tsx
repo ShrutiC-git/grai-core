@@ -1,8 +1,8 @@
+import React from "react"
 import userEvent from "@testing-library/user-event"
 import { UserEvent } from "@testing-library/user-event/dist/types/setup/setup"
 import { GraphQLError } from "graphql"
-import React from "react"
-import { renderWithMocks, renderWithRouter, screen, waitFor } from "testing"
+import { render, screen, waitFor } from "testing"
 import { GET_CONNECTORS } from "./ConnectorSelect"
 import CreateConnectionWizard, {
   CREATE_CONNECTION,
@@ -11,19 +11,21 @@ import CreateConnectionWizard, {
 jest.setTimeout(30000)
 
 test("renders", async () => {
-  renderWithRouter(<CreateConnectionWizard />)
+  render(<CreateConnectionWizard workspaceId="1" />, {
+    withRouter: true,
+  })
 
-  expect(screen.getByText("Select a connector")).toBeTruthy()
+  expect(screen.getByText("Select a connector")).toBeInTheDocument()
 })
 
 test("close", async () => {
   const user = userEvent.setup()
 
-  renderWithRouter(<CreateConnectionWizard />, {
-    routes: ["/workspaces/:workspaceId/connections"],
+  render(<CreateConnectionWizard workspaceId="1" />, {
+    routes: ["/:organisationName/:workspaceName/connections"],
   })
 
-  expect(screen.getByText("Select a connector")).toBeTruthy()
+  expect(screen.getByText("Select a connector")).toBeInTheDocument()
 
   user.click(screen.getByTestId("CloseIcon"))
 
@@ -31,7 +33,7 @@ test("close", async () => {
     expect(screen.queryByText("Select a connector")).toBeFalsy()
   })
 
-  expect(screen.getByText("New Page")).toBeTruthy()
+  expect(screen.getByText("New Page")).toBeInTheDocument()
 })
 
 const connectorsMock = {
@@ -81,7 +83,7 @@ const connectorsMock = {
 }
 
 const submit = async (user: UserEvent, container: HTMLElement) => {
-  expect(screen.getByText("Select a connector")).toBeTruthy()
+  expect(screen.getByText("Select a connector")).toBeInTheDocument()
 
   await waitFor(() => {
     expect(screen.getByRole("button", { name: /PostgreSQL/i })).toBeTruthy()
@@ -93,7 +95,7 @@ const submit = async (user: UserEvent, container: HTMLElement) => {
     expect(screen.queryByText("Select a connector")).toBeFalsy()
   })
 
-  expect(screen.getByText("Connect to PostgreSQL")).toBeTruthy()
+  expect(screen.getByText("Connect to PostgreSQL")).toBeInTheDocument()
 
   await user.type(screen.getByRole("textbox", { name: "Namespace" }), "default")
 
@@ -101,8 +103,6 @@ const submit = async (user: UserEvent, container: HTMLElement) => {
     screen.getByRole("textbox", { name: "Name" }),
     "test connection"
   )
-
-  await user.type(screen.getByRole("textbox", { name: "Name" }), "test")
   await user.type(
     screen.getByRole("textbox", { name: "Database Name" }),
     "test"
@@ -122,7 +122,7 @@ const submit = async (user: UserEvent, container: HTMLElement) => {
     expect(screen.queryByText("Connect to PostgreSQL")).toBeFalsy()
   })
 
-  expect(screen.getByText("Test connection to PostgreSQL")).toBeTruthy()
+  expect(screen.getByText("Test connection to PostgreSQL")).toBeInTheDocument()
 
   await user.click(screen.getByRole("button", { name: /continue/i }))
 
@@ -130,7 +130,9 @@ const submit = async (user: UserEvent, container: HTMLElement) => {
     expect(screen.queryByText("Test connection to PostgreSQL")).toBeFalsy()
   })
 
-  expect(screen.getByText("Set a schedule for this connection")).toBeTruthy()
+  expect(
+    screen.getByText("Set a schedule for this connection")
+  ).toBeInTheDocument()
 
   await user.click(screen.getByTestId("cron-expression"))
 
@@ -147,10 +149,10 @@ test("submit", async () => {
     request: {
       query: CREATE_CONNECTION,
       variables: {
-        workspaceId: "",
+        workspaceId: "1",
         connectorId: "1",
-        namespace: "default",
-        name: "test connectiontest",
+        namespace: "defaultdefault",
+        name: "PostgreSQLtest connection",
         metadata: { dbname: "test", user: "test", host: "test", port: "5432" },
         secrets: { password: "password" },
         schedules: {
@@ -188,13 +190,10 @@ test("submit", async () => {
     },
   }
 
-  const { container } = renderWithMocks(
-    <CreateConnectionWizard />,
-    [connectorsMock, createMock],
-    {
-      routes: ["/workspaces/:workspaceId/connections/:connectionId"],
-    }
-  )
+  const { container } = render(<CreateConnectionWizard workspaceId="1" />, {
+    routes: ["/:organisationName/:workspaceName/connections/:connectionId"],
+    mocks: [connectorsMock, createMock],
+  })
 
   await submit(user, container)
 
@@ -202,7 +201,7 @@ test("submit", async () => {
     expect(screen.queryByText("Set a schedule for this connection")).toBeFalsy()
   })
 
-  expect(screen.getByText("New Page")).toBeTruthy()
+  expect(screen.getByText("New Page")).toBeInTheDocument()
 })
 
 test("error", async () => {
@@ -212,10 +211,10 @@ test("error", async () => {
     request: {
       query: CREATE_CONNECTION,
       variables: {
-        workspaceId: "",
+        workspaceId: "1",
         connectorId: "1",
-        namespace: "default",
-        name: "test connectiontest",
+        namespace: "defaultdefault",
+        name: "PostgreSQLtest connection",
         metadata: { dbname: "test", user: "test", host: "test", port: "5432" },
         secrets: { password: "password" },
         schedules: {
@@ -236,17 +235,14 @@ test("error", async () => {
     },
   }
 
-  const { container } = renderWithMocks(
-    <CreateConnectionWizard />,
-    [connectorsMock, createMock],
-    {
-      routes: ["/workspaces/:workspaceId/connections/:connectionId"],
-    }
-  )
+  const { container } = render(<CreateConnectionWizard workspaceId="1" />, {
+    routes: ["/:organisationName/:workspaceName/connections/:connectionId"],
+    mocks: [connectorsMock, createMock],
+  })
 
   await submit(user, container)
 
   await waitFor(() => {
-    expect(screen.getAllByText("Error!")).toBeTruthy()
+    expect(screen.getByText("Error!")).toBeInTheDocument()
   })
 })

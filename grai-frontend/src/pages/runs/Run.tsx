@@ -1,18 +1,24 @@
+import React from "react"
 import { gql, useQuery } from "@apollo/client"
+import useRunPolling from "helpers/runPolling"
+import useWorkspace from "helpers/useWorkspace"
+import { useParams } from "react-router-dom"
+import NotFound from "pages/NotFound"
 import PageLayout from "components/layout/PageLayout"
 import RunDetail from "components/runs/RunDetail"
 import RunHeader from "components/runs/RunHeader"
 import GraphError from "components/utils/GraphError"
-import NotFound from "pages/NotFound"
-import React from "react"
-import { useParams } from "react-router-dom"
 import { GetRun, GetRunVariables } from "./__generated__/GetRun"
 
 export const GET_RUN = gql`
-  query GetRun($workspaceId: ID!, $runId: ID!) {
-    workspace(pk: $workspaceId) {
+  query GetRun(
+    $organisationName: String!
+    $workspaceName: String!
+    $runId: ID!
+  ) {
+    workspace(organisationName: $organisationName, name: $workspaceName) {
       id
-      run(pk: $runId) {
+      run(id: $runId) {
         id
         connection {
           id
@@ -20,6 +26,45 @@ export const GET_RUN = gql`
           connector {
             id
             name
+          }
+          runs(order: { created_at: DESC }) {
+            id
+            status
+            created_at
+            started_at
+            finished_at
+            user {
+              id
+              first_name
+              last_name
+            }
+            metadata
+          }
+          last_run {
+            id
+            status
+            created_at
+            started_at
+            finished_at
+            user {
+              id
+              first_name
+              last_name
+            }
+            metadata
+          }
+          last_successful_run {
+            id
+            status
+            created_at
+            started_at
+            finished_at
+            user {
+              id
+              first_name
+              last_name
+            }
+            metadata
           }
         }
         status
@@ -40,14 +85,23 @@ export const GET_RUN = gql`
 `
 
 const Run: React.FC = () => {
-  const { workspaceId, runId } = useParams()
+  const { organisationName, workspaceName } = useWorkspace()
+  const { runId } = useParams()
 
-  const { loading, error, data } = useQuery<GetRun, GetRunVariables>(GET_RUN, {
+  const { loading, error, data, startPolling, stopPolling } = useQuery<
+    GetRun,
+    GetRunVariables
+  >(GET_RUN, {
     variables: {
-      workspaceId: workspaceId ?? "",
+      organisationName,
+      workspaceName,
       runId: runId ?? "",
     },
   })
+
+  const status = data?.workspace.run?.status
+
+  useRunPolling(status, startPolling, stopPolling)
 
   if (error) return <GraphError error={error} />
   if (loading) return <PageLayout loading />
@@ -58,7 +112,7 @@ const Run: React.FC = () => {
 
   return (
     <PageLayout>
-      <RunHeader run={run} />
+      <RunHeader run={run} workspaceId={data.workspace.id} />
       <RunDetail run={run} />
     </PageLayout>
   )

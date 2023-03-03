@@ -1,51 +1,50 @@
 import React from "react"
-import { Alert, Box } from "@mui/material"
-import GraphComponent, { Error } from "components/graph/Graph"
 import { gql, useQuery } from "@apollo/client"
+import { Alert, Box } from "@mui/material"
+import useWorkspace from "helpers/useWorkspace"
+import { useSearchParams } from "react-router-dom"
 import theme from "theme"
-import { useLocation, useParams } from "react-router-dom"
-import { nodesToTables } from "helpers/graph"
-import {
-  GetNodesAndEdges,
-  GetNodesAndEdgesVariables,
-} from "./__generated__/GetNodesAndEdges"
-import GraphError from "components/utils/GraphError"
+import GraphComponent, { Error } from "components/graph/Graph"
 import PageLayout from "components/layout/PageLayout"
+import GraphError from "components/utils/GraphError"
+import {
+  GetTablesAndEdges,
+  GetTablesAndEdgesVariables,
+} from "./__generated__/GetTablesAndEdges"
 
-export const GET_NODES_AND_EDGES = gql`
-  query GetNodesAndEdges($workspaceId: ID!) {
-    workspace(pk: $workspaceId) {
+export const GET_TABLES_AND_EDGES = gql`
+  query GetTablesAndEdges($organisationName: String!, $workspaceName: String!) {
+    workspace(organisationName: $organisationName, name: $workspaceName) {
       id
-      nodes {
+      tables {
         id
         namespace
         name
         display_name
-        is_active
         data_source
         metadata
-      }
-      edges {
-        id
-        is_active
-        data_source
-        source {
+        columns {
           id
-          namespace
+          name
+        }
+        source_tables {
+          id
           name
           display_name
-          data_source
-          is_active
-          metadata
+        }
+        destination_tables {
+          id
+          name
+          display_name
+        }
+      }
+      other_edges {
+        id
+        source {
+          id
         }
         destination {
           id
-          namespace
-          name
-          display_name
-          data_source
-          is_active
-          metadata
         }
         metadata
       }
@@ -54,15 +53,16 @@ export const GET_NODES_AND_EDGES = gql`
 `
 
 const Graph: React.FC = () => {
-  const { workspaceId } = useParams()
-  const searchParams = new URLSearchParams(useLocation().search)
+  const { organisationName, workspaceName } = useWorkspace()
+  const [searchParams] = useSearchParams()
 
   const { loading, error, data } = useQuery<
-    GetNodesAndEdges,
-    GetNodesAndEdgesVariables
-  >(GET_NODES_AND_EDGES, {
+    GetTablesAndEdges,
+    GetTablesAndEdgesVariables
+  >(GET_TABLES_AND_EDGES, {
     variables: {
-      workspaceId: workspaceId ?? "",
+      organisationName,
+      workspaceName,
     },
   })
 
@@ -74,9 +74,10 @@ const Graph: React.FC = () => {
   const limitGraph: boolean =
     searchParams.get("limitGraph")?.toLowerCase() === "true" && !!errors
 
-  if (!data?.workspace.nodes) return <Alert>No nodes found</Alert>
+  const tables = data?.workspace.tables
+  const edges = data?.workspace.other_edges ?? []
 
-  const tables = nodesToTables(data.workspace.nodes, data.workspace.edges)
+  if (!tables) return <Alert>No tables found</Alert>
 
   return (
     <PageLayout>
@@ -89,8 +90,7 @@ const Graph: React.FC = () => {
       >
         <GraphComponent
           tables={tables}
-          nodes={data.workspace.nodes}
-          edges={data.workspace.edges}
+          edges={edges}
           errors={errors}
           limitGraph={limitGraph}
         />

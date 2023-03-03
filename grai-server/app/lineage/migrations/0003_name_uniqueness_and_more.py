@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0001_initial"),
         ("lineage", "0002_alter_edge_destination_alter_edge_source"),
@@ -75,9 +74,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="edge",
-            index=models.Index(
-                fields=["workspace", "is_active"], name="lineage_edg_workspa_b34f20_idx"
-            ),
+            index=models.Index(fields=["workspace", "is_active"], name="lineage_edg_workspa_b34f20_idx"),
         ),
         migrations.AddIndex(
             model_name="edge",

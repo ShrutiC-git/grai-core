@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react"
+import Elk, { ElkNode } from "elkjs"
 import ReactFlow, {
   Controls,
   Edge,
+  EdgeTypes,
   getIncomers,
   getOutgoers,
   Node,
@@ -9,16 +11,21 @@ import ReactFlow, {
   ReactFlowProvider,
 } from "reactflow"
 import "reactflow/dist/style.css"
-import Elk, { ElkNode } from "elkjs"
-import BaseNode from "./BaseNode"
 import theme from "theme"
 import Loading from "components/layout/Loading"
+import BaseNode from "./BaseNode"
+import GraphControls, { ControlOptions } from "./controls/GraphControls"
+import TestEdge from "./TestEdge"
 
 const DEFAULT_WIDTH = 300
 const DEFAULT_HEIGHT = 110
 
 const nodeTypes = {
   baseNode: BaseNode,
+}
+
+const edgeTypes: EdgeTypes = {
+  test: TestEdge,
 }
 
 export const createGraphLayout = async (
@@ -45,7 +52,7 @@ export const createGraphLayout = async (
       width: DEFAULT_WIDTH,
       height:
         DEFAULT_HEIGHT +
-        (node.data.expanded ? node.data.columns.length * 50 : 0),
+        (node.data.expanded ? node.data.columns.length * 42 + 100 : 0),
     })
   )
 
@@ -71,7 +78,7 @@ export const createGraphLayout = async (
     if (gnode?.x && gnode?.y && gnode?.width && gnode?.height) {
       node.position = {
         x: gnode.x - gnode.width / 2 + Math.random() / 1000,
-        y: gnode.y - gnode.height / 2,
+        y: gnode.y - gnode.height / 2 + (node.data.expanded ? 120 : 0),
       }
     }
 
@@ -115,12 +122,20 @@ type BaseGraphProps = {
   initialNodes: Node[]
   initialEdges: Edge[]
   expanded: string[]
+  errors: boolean
+  controlOptions?: ControlOptions
+  search: string | null
+  onSearch: (input: string | null) => void
 }
 
 const BaseGraph: React.FC<BaseGraphProps> = ({
   initialNodes,
   initialEdges,
   expanded,
+  errors,
+  controlOptions,
+  search,
+  onSearch,
 }) => {
   const [nodes, setNodes] = useState<Node[]>()
   const [edges, setEdges] = useState<Edge[]>(initialEdges)
@@ -207,11 +222,19 @@ const BaseGraph: React.FC<BaseGraphProps> = ({
 
   return (
     <ReactFlowProvider>
+      <GraphControls
+        errors={!!errors}
+        options={controlOptions}
+        search={search}
+        onSearch={onSearch}
+      />
       <ReactFlow
+        minZoom={0}
         nodes={nodes}
         edges={edges}
         proOptions={proOptions}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodeMouseEnter={(_event, node) => highlightPath(node, nodes, edges)}
         onNodeMouseLeave={() => resetNodeStyles()}
         onPaneClick={() => {
@@ -219,7 +242,7 @@ const BaseGraph: React.FC<BaseGraphProps> = ({
         }}
         fitView
       >
-        <Controls />
+        <Controls showInteractive={false} />
       </ReactFlow>
     </ReactFlowProvider>
   )

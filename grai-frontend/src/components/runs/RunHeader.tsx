@@ -1,3 +1,4 @@
+import React from "react"
 import { KeyboardBackspace, ContentCopy } from "@mui/icons-material"
 import {
   Box,
@@ -7,27 +8,40 @@ import {
   IconButton,
   Divider,
 } from "@mui/material"
-import React from "react"
-import { useParams, Link } from "react-router-dom"
+import useWorkspace from "helpers/useWorkspace"
+import { Link } from "react-router-dom"
+import ConnectionRun, {
+  Connection as BaseConnection,
+  RunResult,
+} from "components/connections/ConnectionRun"
 import RunStatus from "./RunStatus"
 
-interface Connection {
+interface Connector {
   id: string
   name: string
 }
 
+interface Connection extends BaseConnection {
+  id: string
+  name: string
+  connector: Connector
+}
+
 interface Run {
   id: string
-  connection: Connection
+  connection: Connection | null
   status: string
 }
 
 type RunHeaderProps = {
   run: Run
+  workspaceId: string
 }
 
-const RunHeader: React.FC<RunHeaderProps> = ({ run }) => {
-  const { workspaceId } = useParams()
+const RunHeader: React.FC<RunHeaderProps> = ({ run, workspaceId }) => {
+  const { routePrefix, workspaceNavigate } = useWorkspace()
+
+  const handleRun = (run: RunResult) => workspaceNavigate(`runs/${run.id}`)
 
   return (
     <>
@@ -35,18 +49,20 @@ const RunHeader: React.FC<RunHeaderProps> = ({ run }) => {
         <Box>
           <Button
             component={Link}
-            to={`/workspaces/${workspaceId}/connections/${run.connection.id}`}
+            to={
+              run.connection
+                ? `${routePrefix}/connections/${run.connection.id}`
+                : `${routePrefix}/runs`
+            }
             color="secondary"
             startIcon={<KeyboardBackspace />}
           >
             Back
           </Button>
         </Box>
-        <Typography
-          variant="h6"
-          sx={{ textTransform: "uppercase", mx: 1, mt: 0.3 }}
-        >
-          {run.connection.name}/{run.id.slice(0, 6)}
+        <Typography variant="h6" sx={{ mx: 1, mt: 0.3 }}>
+          {run.connection ? `${run.connection.name}/` : null}
+          {run.id.slice(0, 6)}
         </Typography>
         <Box>
           <Tooltip title="Copy Run id">
@@ -56,6 +72,14 @@ const RunHeader: React.FC<RunHeaderProps> = ({ run }) => {
           </Tooltip>
         </Box>
         <RunStatus run={run} sx={{ ml: 2 }} />
+        <Box sx={{ flexGrow: 1 }} />
+        {run.connection && (
+          <ConnectionRun
+            connection={run.connection}
+            workspaceId={workspaceId}
+            onRun={handleRun}
+          />
+        )}
       </Box>
       <Divider />
     </>

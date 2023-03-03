@@ -1,3 +1,4 @@
+import React from "react"
 import { gql, useApolloClient, useQuery } from "@apollo/client"
 import { AccountCircle, Settings, Business, Logout } from "@mui/icons-material"
 import {
@@ -10,14 +11,15 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material"
+import useWorkspace from "helpers/useWorkspace"
 import PopupState, {
   bindMenu,
   bindTrigger,
   InjectedProps,
 } from "material-ui-popup-state"
-import React, { useContext } from "react"
-import { Link, useParams } from "react-router-dom"
-import AuthContext from "components/auth/AuthContext"
+import posthog from "posthog"
+import { Link } from "react-router-dom"
+import useAuth from "components/auth/useAuth"
 import GraphError from "components/utils/GraphError"
 import { GetProfileMenu } from "./__generated__/GetProfileMenu"
 
@@ -33,8 +35,8 @@ export const GET_PROFILE = gql`
 `
 
 const ProfileMenu: React.FC = () => {
-  const { workspaceId } = useParams()
-  const { logoutUser } = useContext(AuthContext)
+  const { routePrefix } = useWorkspace()
+  const { logoutUser } = useAuth()
   const client = useApolloClient()
 
   const { error, data } = useQuery<GetProfileMenu>(GET_PROFILE)
@@ -42,6 +44,7 @@ const ProfileMenu: React.FC = () => {
   const handleLogout = (popupState: InjectedProps) => {
     client.clearStore()
     logoutUser()
+    posthog.reset()
     popupState.close()
   }
 
@@ -73,7 +76,7 @@ const ProfileMenu: React.FC = () => {
             <MenuItem
               onClick={popupState.close}
               component={Link}
-              to={`/workspaces/${workspaceId}/settings`}
+              to={`${routePrefix}/settings`}
             >
               <ListItemIcon>
                 <Settings fontSize="small" />

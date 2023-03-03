@@ -1,16 +1,17 @@
 import React, { useState } from "react"
-import SettingsLayout from "components/settings/SettingsLayout"
-import Form from "components/form/Form"
-import { Box, Grid, TextField, Typography } from "@mui/material"
-import { LoadingButton } from "@mui/lab"
 import { gql, useMutation } from "@apollo/client"
+import { LoadingButton } from "@mui/lab"
+import { Box, Grid, TextField, Typography } from "@mui/material"
+import useWorkspace from "helpers/useWorkspace"
+import { useSnackbar } from "notistack"
+import { useNavigate } from "react-router-dom"
+import Form from "components/form/Form"
+import SettingsLayout from "components/settings/SettingsLayout"
 import GraphError from "components/utils/GraphError"
-import { useNavigate, useParams } from "react-router-dom"
 import {
   UpdatePassword,
   UpdatePasswordVariables,
 } from "./__generated__/UpdatePassword"
-import { useSnackbar } from "notistack"
 
 export const UPDATE_PASSWORD = gql`
   mutation UpdatePassword($old_password: String!, $password: String!) {
@@ -26,7 +27,7 @@ type Values = {
 }
 
 const PasswordSettings: React.FC = () => {
-  const { workspaceId } = useParams()
+  const { routePrefix } = useWorkspace()
   const navigate = useNavigate()
   const { enqueueSnackbar } = useSnackbar()
 
@@ -45,7 +46,7 @@ const PasswordSettings: React.FC = () => {
       variables: values,
     })
       .then(() => enqueueSnackbar("Password updated"))
-      .then(() => navigate(`/workspaces/${workspaceId}/settings/profile`))
+      .then(() => navigate(`${routePrefix}/settings/profile`))
       .catch(err => {})
 
   return (

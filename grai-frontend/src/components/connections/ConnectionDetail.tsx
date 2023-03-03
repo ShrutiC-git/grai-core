@@ -1,6 +1,6 @@
-import { Card, Table, TableBody } from "@mui/material"
-import NodeDetailRow from "components/nodes/NodeDetailRow"
 import React from "react"
+import { Card, Table, TableBody } from "@mui/material"
+import NodeDetailRow from "components/layout/NodeDetailRow"
 import ConnectionSchedule, {
   Connection as BaseConnection,
 } from "./schedule/ConnectionSchedule"
@@ -34,6 +34,7 @@ const ConnectionDetail: React.FC<ConnectionDetailProps> = ({ connection }) => (
   <Card variant="outlined" sx={{ borderRadius: 0, borderBottom: 0 }}>
     <Table>
       <TableBody>
+        <NodeDetailRow label="id" value={connection.id} />
         <NodeDetailRow label="Connector" value={connection.connector.name} />
         <ConnectionSchedule connection={connection} />
       </TableBody>

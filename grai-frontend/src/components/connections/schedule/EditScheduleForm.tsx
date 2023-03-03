@@ -1,3 +1,4 @@
+import React, { useState } from "react"
 import { gql, useMutation } from "@apollo/client"
 import { LoadingButton } from "@mui/lab"
 import {
@@ -11,15 +12,14 @@ import {
   Checkbox,
   Box,
 } from "@mui/material"
+import { useSnackbar } from "notistack"
 import Form from "components/form/Form"
 import GraphError from "components/utils/GraphError"
-import React, { useState } from "react"
 import {
   UpdateConnectionSchedule,
   UpdateConnectionScheduleVariables,
 } from "./__generated__/UpdateConnectionSchedule"
 import { Connection } from "./ConnectionSchedule"
-import { useSnackbar } from "notistack"
 
 export const UPDATE_CONNECTION = gql`
   mutation UpdateConnectionSchedule(
@@ -139,7 +139,7 @@ const EditScheduleForm: React.FC<EditScheduleFormProps> = ({ connection }) => {
             <FormControlLabel
               value="custom"
               control={<Radio />}
-              label="Custom resurrence"
+              label="Custom recurrence"
               disabled
             />
             <FormControlLabel

@@ -1,3 +1,4 @@
+import React, { useState } from "react"
 import { gql, useMutation } from "@apollo/client"
 import { LoadingButton } from "@mui/lab"
 import {
@@ -8,11 +9,11 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import useWorkspace from "helpers/useWorkspace"
+import { useSnackbar } from "notistack"
+import { Link } from "react-router-dom"
 import Form from "components/form/Form"
 import GraphError from "components/utils/GraphError"
-import { useSnackbar } from "notistack"
-import React, { useState } from "react"
-import { Link, useParams } from "react-router-dom"
 import {
   UpdateProfile,
   UpdateProfileVariables,
@@ -44,7 +45,7 @@ type ProfileFormProps = {
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({ profile }) => {
-  const { workspaceId } = useParams()
+  const { routePrefix } = useWorkspace()
   const [values, setValues] = useState<Values>(profile)
   const { enqueueSnackbar } = useSnackbar()
 
@@ -111,7 +112,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile }) => {
                   <InputAdornment position="end">
                     <Button
                       component={Link}
-                      to={`/workspaces/${workspaceId}/settings/password`}
+                      to={`${routePrefix}/settings/password`}
                     >
                       Change password
                     </Button>

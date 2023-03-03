@@ -1,22 +1,28 @@
+import React from "react"
 import { gql, useQuery } from "@apollo/client"
-import React, { useEffect } from "react"
+import useRunPolling from "helpers/runPolling"
+import useWorkspace from "helpers/useWorkspace"
 import { useParams } from "react-router-dom"
 import NotFound from "pages/NotFound"
+import ConnectionContent from "components/connections/ConnectionContent"
+import ConnectionHeader from "components/connections/ConnectionHeader"
+import ConnectionTabs from "components/connections/ConnectionTabs"
+import PageLayout from "components/layout/PageLayout"
+import GraphError from "components/utils/GraphError"
 import {
   GetConnection,
   GetConnectionVariables,
 } from "./__generated__/GetConnection"
-import GraphError from "components/utils/GraphError"
-import PageLayout from "components/layout/PageLayout"
-import ConnectionHeader from "components/connections/ConnectionHeader"
-import ConnectionContent from "components/connections/ConnectionContent"
-import ConnectionTabs from "components/connections/ConnectionTabs"
 
 export const GET_CONNECTION = gql`
-  query GetConnection($workspaceId: ID!, $connectionId: ID!) {
-    workspace(pk: $workspaceId) {
+  query GetConnection(
+    $organisationName: String!
+    $workspaceName: String!
+    $connectionId: ID!
+  ) {
+    workspace(organisationName: $organisationName, name: $workspaceName) {
       id
-      connection(pk: $connectionId) {
+      connection(id: $connectionId) {
         id
         namespace
         name
@@ -75,27 +81,23 @@ export const GET_CONNECTION = gql`
 `
 
 const Connection: React.FC = () => {
-  const { workspaceId, connectionId } = useParams()
+  const { organisationName, workspaceName } = useWorkspace()
+  const { connectionId } = useParams()
 
   const { loading, error, data, startPolling, stopPolling } = useQuery<
     GetConnection,
     GetConnectionVariables
   >(GET_CONNECTION, {
     variables: {
-      workspaceId: workspaceId ?? "",
+      organisationName,
+      workspaceName,
       connectionId: connectionId ?? "",
     },
   })
 
   const status = data?.workspace.connection?.last_run?.status
 
-  useEffect(() => {
-    if (!status) return
-
-    if (!["success", "error"].includes(status)) return
-
-    stopPolling()
-  }, [status, stopPolling])
+  useRunPolling(status, startPolling, stopPolling)
 
   if (error) return <GraphError error={error} />
   if (loading) return <PageLayout loading />
@@ -104,11 +106,15 @@ const Connection: React.FC = () => {
 
   if (!connection) return <NotFound />
 
-  const handleRefresh = () => startPolling(1000)
+  const handleRun = () => startPolling(1000)
 
   return (
     <PageLayout>
-      <ConnectionHeader connection={connection} onRefresh={handleRefresh} />
+      <ConnectionHeader
+        connection={connection}
+        workspaceId={data.workspace.id}
+        onRun={handleRun}
+      />
       <ConnectionContent connection={connection} />
       <ConnectionTabs connection={connection} />
     </PageLayout>

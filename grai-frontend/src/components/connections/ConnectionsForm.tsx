@@ -1,9 +1,9 @@
+import React, { useState } from "react"
 import { LoadingButton } from "@mui/lab"
 import { TextField } from "@mui/material"
-import React, { useState } from "react"
 import Form from "components/form/Form"
-import ConnectionsMetadata from "./ConnectionsMetadata"
 import GraphError from "components/utils/GraphError"
+import ConnectionsMetadata from "./ConnectionsMetadata"
 
 export interface ConnectorMetadataField {
   name: string
@@ -15,6 +15,10 @@ export interface ConnectorMetadataField {
 
 export interface ConnectorMetadata {
   fields?: ConnectorMetadataField[]
+  file?: {
+    name?: string | null
+    extension?: string | null
+  } | null
 }
 
 export interface ConnectorType {

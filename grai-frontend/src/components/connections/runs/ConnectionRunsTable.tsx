@@ -1,3 +1,4 @@
+import React from "react"
 import {
   Table,
   TableHead,
@@ -7,16 +8,15 @@ import {
   Typography,
   Tooltip,
 } from "@mui/material"
-import React from "react"
-import theme from "theme"
 import {
   durationAgo,
   runDurationString,
   runQueuedString,
 } from "helpers/runDuration"
+import useWorkspace from "helpers/useWorkspace"
 import { DateTime } from "luxon"
+import theme from "theme"
 import RunStatus from "components/runs/RunStatus"
-import { useNavigate, useParams } from "react-router-dom"
 
 interface User {
   id: string
@@ -38,8 +38,7 @@ type ConnectionRunsTableProps = {
 }
 
 const ConnectionRunsTable: React.FC<ConnectionRunsTableProps> = ({ runs }) => {
-  const navigate = useNavigate()
-  const { workspaceId } = useParams()
+  const { workspaceNavigate } = useWorkspace()
 
   return (
     <Table sx={{ mt: 1 }}>
@@ -52,7 +51,6 @@ const ConnectionRunsTable: React.FC<ConnectionRunsTableProps> = ({ runs }) => {
           <TableCell sx={{ textAlign: "right" }}>Started</TableCell>
           <TableCell sx={{ textAlign: "right" }}>Queued</TableCell>
           <TableCell sx={{ textAlign: "right" }}>Duration</TableCell>
-          <TableCell />
         </TableRow>
       </TableHead>
       <TableBody>
@@ -61,9 +59,7 @@ const ConnectionRunsTable: React.FC<ConnectionRunsTableProps> = ({ runs }) => {
             key={run.id}
             hover
             sx={{ cursor: "pointer" }}
-            onClick={() =>
-              navigate(`/workspaces/${workspaceId}/runs/${run.id}`)
-            }
+            onClick={() => workspaceNavigate(`runs/${run.id}`)}
           >
             <TableCell sx={{ color: theme.palette.grey[500], pr: 0 }}>
               {index}
@@ -90,7 +86,6 @@ const ConnectionRunsTable: React.FC<ConnectionRunsTableProps> = ({ runs }) => {
             <TableCell sx={{ textAlign: "right" }}>
               {runDurationString(run)}
             </TableCell>
-            <TableCell />
           </TableRow>
         ))}
         {runs.length === 0 && (

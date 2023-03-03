@@ -1,21 +1,16 @@
-from typing import List, Literal, Optional, Tuple, Union
+from typing import List, Literal, Optional, Tuple
 
 from grai_client.endpoints.client import BaseClient
-from grai_client.schemas.edge import Edge
-from grai_client.schemas.node import Node
 from grai_client.update import update
+from grai_schemas.base import Edge, Node
 
 from grai_source_snowflake.adapters import adapt_to_client
 from grai_source_snowflake.loader import SnowflakeConnector
 
 
-def get_nodes_and_edges(
-    connector: SnowflakeConnector, version: Union[str, Literal["v1"]]
-) -> Tuple[List[Node], List[Edge]]:
+def get_nodes_and_edges(connector: SnowflakeConnector, version: Literal["v1"]) -> Tuple[List[Node], List[Edge]]:
     if version != "v1":
-        raise NotImplementedError(
-            f"No available implementation for client version {version}"
-        )
+        raise NotImplementedError(f"No available implementation for client version {version}")
 
     with connector.connect() as conn:
         nodes, edges = conn.get_nodes_and_edges()
@@ -36,7 +31,6 @@ def update_server(
     database: Optional[str] = None,
     schema: Optional[str] = None,
 ) -> None:
-
     conn = SnowflakeConnector(
         account=account,
         user=user,
@@ -48,5 +42,6 @@ def update_server(
         namespace=namespace,
     )
     nodes, edges = get_nodes_and_edges(conn, client.id)
+
     update(client, nodes)
     update(client, edges)

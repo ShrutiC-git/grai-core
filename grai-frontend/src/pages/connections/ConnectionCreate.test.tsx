@@ -1,10 +1,15 @@
 import React from "react"
-import { renderWithRouter, screen } from "testing"
+import { render, screen, waitFor } from "testing"
 import ConnectionCreate from "./ConnectionCreate"
 
 test("renders", async () => {
-  renderWithRouter(<ConnectionCreate />)
+  render(<ConnectionCreate />, {
+    withRouter: true,
+  })
 
-  expect(screen.getByText("Create Connection")).toBeTruthy()
-  expect(screen.getByText("Select a connector")).toBeTruthy()
+  await waitFor(() => {
+    expect(screen.getByText("Create Connection")).toBeInTheDocument()
+  })
+
+  expect(screen.getByText("Select a connector")).toBeInTheDocument()
 })

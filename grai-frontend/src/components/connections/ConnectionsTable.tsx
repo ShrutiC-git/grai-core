@@ -1,3 +1,4 @@
+import React from "react"
 import {
   Table,
   TableBody,
@@ -5,12 +6,12 @@ import {
   TableRow,
   Typography,
 } from "@mui/material"
-import React from "react"
 import { useNavigate } from "react-router-dom"
 import Loading from "components/layout/Loading"
+import RunStatus from "components/runs/RunStatus"
 import TableCell from "components/tables/TableCell"
+import { Connection as BaseConnection } from "./ConnectionRun"
 import ConnectionsMenu from "./ConnectionsMenu"
-import { Connection as BaseConnection } from "./ConnectionRefresh"
 
 interface Connector {
   id: string
@@ -26,11 +27,13 @@ interface Connection extends BaseConnection {
 
 type ConnectionsTableProps = {
   connections: Connection[]
+  workspaceId: string
   loading?: boolean
 }
 
 const ConnectionsTable: React.FC<ConnectionsTableProps> = ({
   connections,
+  workspaceId,
   loading,
 }) => {
   const navigate = useNavigate()
@@ -43,6 +46,7 @@ const ConnectionsTable: React.FC<ConnectionsTableProps> = ({
           <TableCell>Namespace</TableCell>
           <TableCell>Connector</TableCell>
           <TableCell>Active</TableCell>
+          <TableCell>Status</TableCell>
           <TableCell sx={{ width: 0 }} />
         </TableRow>
       </TableHead>
@@ -59,7 +63,20 @@ const ConnectionsTable: React.FC<ConnectionsTableProps> = ({
             <TableCell>{connection.connector.name}</TableCell>
             <TableCell>{connection.is_active ? "Yes" : "No"}</TableCell>
             <TableCell sx={{ py: 0, px: 1 }} stopPropagation>
-              <ConnectionsMenu connection={connection} />
+              {connection.last_run && (
+                <RunStatus
+                  run={connection.last_run}
+                  size="small"
+                  link
+                  sx={{ cursor: "pointer" }}
+                />
+              )}
+            </TableCell>
+            <TableCell sx={{ py: 0, px: 1 }} stopPropagation>
+              <ConnectionsMenu
+                connection={connection}
+                workspaceId={workspaceId}
+              />
             </TableCell>
           </TableRow>
         ))}

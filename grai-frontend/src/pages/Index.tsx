@@ -1,27 +1,41 @@
-import { gql, useQuery } from "@apollo/client"
 import React from "react"
+import { gql, useQuery } from "@apollo/client"
 import { Navigate } from "react-router-dom"
 import Loading from "components/layout/Loading"
 import GraphError from "components/utils/GraphError"
+import { GetWorkspacesIndex } from "./__generated__/GetWorkspacesIndex"
 
 export const GET_WORKSPACES = gql`
   query GetWorkspacesIndex {
     workspaces {
       id
       name
+      organisation {
+        id
+        name
+      }
     }
   }
 `
 
 const Index: React.FC = () => {
-  const { loading, error, data } = useQuery(GET_WORKSPACES)
+  const { loading, error, data } = useQuery<GetWorkspacesIndex>(GET_WORKSPACES)
 
   if (error) return <GraphError error={error} />
   if (loading) return <Loading />
 
-  const workspaces = data.workspaces
+  const workspaces = data?.workspaces ?? []
 
-  return <Navigate to={`/workspaces/${workspaces[0]?.id}`} />
+  const firstWorkspace = workspaces[0]
+
+  if (firstWorkspace)
+    return (
+      <Navigate
+        to={`/${firstWorkspace.organisation.name}/${firstWorkspace.name}`}
+      />
+    )
+
+  return <Navigate to="/workspaces" />
 }
 
 export default Index

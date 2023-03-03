@@ -1,3 +1,6 @@
+import os
+from itertools import chain
+
 import pytest
 
 from grai_source_snowflake.base import adapt_to_client, get_nodes_and_edges
@@ -6,6 +9,7 @@ from grai_source_snowflake.models import Column, Edge, Table
 
 # Tests only run with a separate snowflake container deployed
 # TODO: Mock the DB connection: https://blog.devgenius.io/creating-a-mock-database-for-unittesting-in-python-is-easier-than-you-think-c458e747224b
+
 # @pytest.fixture
 # def connection() -> SnowflakeConnector:
 #     test_credentials = {
@@ -18,7 +22,6 @@ from grai_source_snowflake.models import Column, Edge, Table
 #         "account": "test",
 #         "warehouse": "test",
 #     }
-#
 #     connection = SnowflakeConnector(**test_credentials)
 #     return connection
 #
@@ -30,10 +33,13 @@ from grai_source_snowflake.models import Column, Edge, Table
 
 
 @pytest.fixture
-def mock_get_nodes_and_edges(tables, edges):
-    nodes = adapt_to_client(tables, "v1")
-    edges = adapt_to_client(edges, "v1")
-    return nodes, edges
+def v1_adapted_nodes(mock_get_nodes_and_edges):
+    return mock_get_nodes_and_edges[0]
+
+
+@pytest.fixture
+def v1_adapted_edges(mock_get_nodes_and_edges):
+    return mock_get_nodes_and_edges[1]
 
 
 @pytest.fixture
@@ -110,11 +116,6 @@ def table_params(column_params):
 
 
 @pytest.fixture
-def tables(table_params):
-    return [Table(**params) for params in table_params]
-
-
-@pytest.fixture
 def edge_params():
     def make_column_id():
         return {
@@ -142,5 +143,17 @@ def edge_params():
 
 
 @pytest.fixture
+def tables(table_params, edges):
+    return [Table(**params) for params in table_params]
+
+
+@pytest.fixture
 def edges(edge_params):
     return [Edge(**params) for params in edge_params]
+
+
+@pytest.fixture
+def mock_get_nodes_and_edges(tables, edges):
+    nodes = adapt_to_client(tables, "v1")
+    edges = adapt_to_client(edges, "v1")
+    return nodes, edges

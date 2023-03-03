@@ -1,3 +1,4 @@
+import React, { useState } from "react"
 import { gql, useMutation } from "@apollo/client"
 import {
   Alert,
@@ -6,16 +7,15 @@ import {
   DialogContent,
   Typography,
 } from "@mui/material"
-import React, { useState } from "react"
-import { useParams } from "react-router-dom"
 import DialogTitle from "components/dialogs/DialogTitle"
 import CopyButton from "components/utils/CopyButton"
-import CreateKeyForm, { Values } from "./CreateKeyForm"
+import GraphError from "components/utils/GraphError"
 import {
   CreateApiKey,
   CreateApiKeyVariables,
 } from "./__generated__/CreateApiKey"
-import GraphError from "components/utils/GraphError"
+import { NewApiKey } from "./__generated__/NewApiKey"
+import CreateKeyForm from "./CreateKeyForm"
 
 export const CREATE_API_KEY = gql`
   mutation CreateApiKey($name: String!, $workspaceId: ID!) {
@@ -29,34 +29,78 @@ export const CREATE_API_KEY = gql`
   }
 `
 
+export type Values = {
+  name: string
+}
+
 type CreateKeyDialogProps = {
+  workspaceId: string
   open: boolean
   onClose: () => void
 }
 
-const CreateKeyDialog: React.FC<CreateKeyDialogProps> = ({ open, onClose }) => {
-  const { workspaceId } = useParams()
+const CreateKeyDialog: React.FC<CreateKeyDialogProps> = ({
+  workspaceId,
+  open,
+  onClose,
+}) => {
   const [key, setKey] = useState<string>()
+  const [values, setValues] = useState<Values>({
+    name: "",
+  })
 
   const [createApiKey, { loading, error }] = useMutation<
     CreateApiKey,
     CreateApiKeyVariables
-  >(CREATE_API_KEY)
+  >(CREATE_API_KEY, {
+    update(cache, { data }) {
+      cache.modify({
+        id: cache.identify({
+          id: workspaceId,
+          __typename: "Workspace",
+        }),
+        fields: {
+          api_keys(existingApiKeys = []) {
+            if (!data?.createApiKey) return
 
-  const handleSubmit = (values: Values) =>
+            const newApiKey = cache.writeFragment<NewApiKey>({
+              data: data.createApiKey.api_key,
+              fragment: gql`
+                fragment NewApiKey on WorkspaceAPIKey {
+                  id
+                  name
+                }
+              `,
+            })
+            return [...existingApiKeys, newApiKey]
+          },
+        },
+      })
+    },
+  })
+
+  const handleSubmit = () =>
     createApiKey({
       variables: {
         ...values,
-        workspaceId: workspaceId ?? "",
+        workspaceId,
       },
     })
       .then(res => res.data)
       .then(data => setKey(data?.createApiKey.key))
       .catch(err => {})
 
+  const handleClose = () => {
+    setValues({
+      name: "",
+    })
+    setKey(undefined)
+    onClose()
+  }
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle onClose={onClose}>Create API Key</DialogTitle>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+      <DialogTitle onClose={handleClose}>Create API Key</DialogTitle>
       <DialogContent>
         {error && <GraphError error={error} />}
         {key ? (
@@ -70,7 +114,12 @@ const CreateKeyDialog: React.FC<CreateKeyDialogProps> = ({ open, onClose }) => {
             again.
           </Alert>
         ) : (
-          <CreateKeyForm onSubmit={handleSubmit} loading={loading} />
+          <CreateKeyForm
+            onSubmit={handleSubmit}
+            loading={loading}
+            values={values}
+            setValues={setValues}
+          />
         )}
       </DialogContent>
     </Dialog>

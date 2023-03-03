@@ -1,3 +1,4 @@
+import React from "react"
 import { ApolloError } from "@apollo/client"
 import { LoadingButton } from "@mui/lab"
 import {
@@ -13,10 +14,9 @@ import GraphError from "components/utils/GraphError"
 import WizardBottomBar from "components/wizards/WizardBottomBar"
 import { ElementOptions } from "components/wizards/WizardLayout"
 import WizardSubtitle from "components/wizards/WizardSubtitle"
-import React from "react"
-import ScheduleHelp from "../schedule/ScheduleHelp"
 import { Values } from "./CreateConnectionWizard"
 import SetCron from "./SetCron"
+import ScheduleHelp from "../schedule/ScheduleHelp"
 
 type SetScheduleProps = {
   opts: ElementOptions
@@ -82,7 +82,7 @@ const SetSchedule: React.FC<SetScheduleProps> = ({
               control={<Radio sx={{ mr: 1 }} />}
               label={
                 <ListItemText
-                  primary="Custom resurrence"
+                  primary="Custom recurrence"
                   secondary="Schedule your sync to run on specific days (e.g., Mondays at 9am)"
                 />
               }

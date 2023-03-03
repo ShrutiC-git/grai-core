@@ -1,16 +1,17 @@
 /* istanbul ignore file */
 import React, { ReactElement, ReactNode } from "react"
-import { MockedProvider, MockedResponse } from "@apollo/client/testing"
+import { MockedResponse } from "@apollo/client/testing"
 import { ThemeProvider } from "@mui/material"
 import { render, RenderOptions } from "@testing-library/react"
+import casual from "casual"
 import { SnackbarProvider } from "notistack"
 import { HelmetProvider } from "react-helmet-async"
 import { MemoryRouter, Route, Routes } from "react-router-dom"
 import theme from "theme"
-import AutoMockedProvider from "./AutoMockedProvider"
-import casual from "casual"
-import AuthMock from "./AuthMock"
 import GuestRoute from "components/auth/GuestRoute"
+import WorkspaceProvider from "components/utils/WorkspaceProvider"
+import AuthMock from "./AuthMock"
+import AutoMockedProvider from "./AutoMockedProvider"
 
 const mockResolvers = {
   Date: () => "2019-12-31",
@@ -30,24 +31,6 @@ const mockResolvers = {
   }),
 }
 
-const customRender = (ui: ReactElement, options?: RenderOptions) =>
-  render(ui, {
-    wrapper: props => (
-      <HelmetProvider>
-        <SnackbarProvider>
-          <ThemeProvider theme={theme}>
-            <AuthMock initialLoggedIn={true}>
-              <AutoMockedProvider mockResolvers={mockResolvers}>
-                {props.children}
-              </AutoMockedProvider>
-            </AuthMock>
-          </ThemeProvider>
-        </SnackbarProvider>
-      </HelmetProvider>
-    ),
-    ...options,
-  })
-
 type RouteType =
   | string
   | {
@@ -55,17 +38,45 @@ type RouteType =
       element: ReactNode
     }
 
-type CustomRenderOptions = {
+type CustomRenderOptions = RenderOptions & {
   path?: string
-  route?: string
+  withRouter?: boolean
+  route?: string | Partial<Location>
   routes?: RouteType[]
-  initialEntries?: string[] | null
+  initialEntries?: (string | Partial<Location>)[] | null
   loggedIn?: boolean
   guestRoute?: boolean
-  throwError?: boolean
+  mocks?: readonly MockedResponse<Record<string, any>>[]
 }
 
-export const renderWithRouter = (
+const customRender = (ui: ReactElement, options?: CustomRenderOptions) => {
+  if (options?.withRouter || options?.path || options?.route || options?.routes)
+    return renderWithRouter(ui, options)
+
+  return basicRender(ui, options)
+}
+
+const basicRender = (
+  ui: ReactElement,
+  { loggedIn = true, mocks }: CustomRenderOptions = {}
+) =>
+  render(ui, {
+    wrapper: props => (
+      <HelmetProvider>
+        <SnackbarProvider>
+          <ThemeProvider theme={theme}>
+            <AuthMock initialLoggedIn={loggedIn}>
+              <AutoMockedProvider mockResolvers={mockResolvers} mocks={mocks}>
+                {props.children}
+              </AutoMockedProvider>
+            </AuthMock>
+          </ThemeProvider>
+        </SnackbarProvider>
+      </HelmetProvider>
+    ),
+  })
+
+const renderWithRouter = (
   ui: ReactElement,
   {
     path = "/",
@@ -74,92 +85,47 @@ export const renderWithRouter = (
     initialEntries = null,
     loggedIn = true,
     guestRoute = false,
-    throwError = false,
+    mocks,
   }: CustomRenderOptions = {}
 ) => {
   return render(ui, {
     wrapper: props => (
       <HelmetProvider>
         <ThemeProvider theme={theme}>
-          <AutoMockedProvider mockResolvers={mockResolvers}>
+          <AutoMockedProvider mockResolvers={mockResolvers} mocks={mocks}>
             <MemoryRouter initialEntries={initialEntries ?? [route]}>
-              <AuthMock initialLoggedIn={loggedIn} throwError={throwError}>
+              <AuthMock initialLoggedIn={loggedIn}>
                 <SnackbarProvider maxSnack={3} hideIconVariant>
                   <Routes>
-                    {guestRoute ? (
-                      <Route element={<GuestRoute />}>
-                        <Route path={path} element={props.children} />
-                      </Route>
-                    ) : (
-                      <Route path={path} element={props.children} />
-                    )}
-                    {routes.map(route =>
-                      typeof route === "string" ? (
-                        <Route
-                          key={route}
-                          path={route}
-                          element={<>New Page</>}
-                        />
+                    <Route element={<WorkspaceProvider />}>
+                      {guestRoute ? (
+                        <Route element={<GuestRoute />}>
+                          <Route path={path} element={props.children} />
+                        </Route>
                       ) : (
-                        <Route
-                          key={route.path}
-                          path={route.path}
-                          element={route.element}
-                        />
-                      )
-                    )}
+                        <Route path={path} element={props.children} />
+                      )}
+                      {routes.map(route =>
+                        typeof route === "string" ? (
+                          <Route
+                            key={route}
+                            path={route}
+                            element={<>New Page</>}
+                          />
+                        ) : (
+                          <Route
+                            key={route.path}
+                            path={route.path}
+                            element={route.element}
+                          />
+                        )
+                      )}
+                    </Route>
                   </Routes>
                 </SnackbarProvider>
               </AuthMock>
             </MemoryRouter>
           </AutoMockedProvider>
-        </ThemeProvider>
-      </HelmetProvider>
-    ),
-  })
-}
-
-export const renderWithMocks = (
-  ui: ReactElement,
-  mocks: readonly MockedResponse<Record<string, any>>[],
-  {
-    path = "/",
-    route = "/",
-    routes = [],
-    loggedIn = true,
-    throwError = false,
-  }: CustomRenderOptions = {}
-) => {
-  return render(ui, {
-    wrapper: props => (
-      <HelmetProvider>
-        <ThemeProvider theme={theme}>
-          <MockedProvider mocks={mocks} addTypename={false}>
-            <MemoryRouter initialEntries={[route]}>
-              <AuthMock initialLoggedIn={loggedIn} throwError={throwError}>
-                <SnackbarProvider maxSnack={3} hideIconVariant>
-                  <Routes>
-                    <Route path={path} element={props.children} />
-                    {routes.map(route =>
-                      typeof route === "string" ? (
-                        <Route
-                          key={route}
-                          path={route}
-                          element={<>New Page</>}
-                        />
-                      ) : (
-                        <Route
-                          key={route.path}
-                          path={route.path}
-                          element={route.element}
-                        />
-                      )
-                    )}
-                  </Routes>
-                </SnackbarProvider>
-              </AuthMock>
-            </MemoryRouter>
-          </MockedProvider>
         </ThemeProvider>
       </HelmetProvider>
     ),

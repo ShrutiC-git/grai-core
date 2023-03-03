@@ -1,11 +1,13 @@
 import React from "react"
-import { GraphQLError } from "graphql"
-import { renderWithMocks, renderWithRouter, screen, waitFor } from "testing"
-import Connections, { GET_CONNECTIONS } from "./Connections"
 import userEvent from "@testing-library/user-event"
+import { GraphQLError } from "graphql"
+import { render, screen, waitFor } from "testing"
+import Connections, { GET_CONNECTIONS } from "./Connections"
 
 test("renders", async () => {
-  renderWithRouter(<Connections />)
+  render(<Connections />, {
+    withRouter: true,
+  })
 
   await waitFor(() => {
     expect(screen.getByRole("heading", { name: /Connections/i })).toBeTruthy()
@@ -19,7 +21,9 @@ test("renders", async () => {
 test("refresh", async () => {
   const user = userEvent.setup()
 
-  renderWithRouter(<Connections />)
+  render(<Connections />, {
+    withRouter: true,
+  })
 
   await waitFor(() => {
     expect(screen.getByRole("heading", { name: /Connections/i })).toBeTruthy()
@@ -32,21 +36,24 @@ test("refresh", async () => {
 })
 
 test("error", async () => {
-  const mock = {
-    request: {
-      query: GET_CONNECTIONS,
-      variables: {
-        workspaceId: "",
+  const mocks = [
+    {
+      request: {
+        query: GET_CONNECTIONS,
+        variables: {
+          organisationName: "",
+          workspaceName: "",
+        },
+      },
+      result: {
+        errors: [new GraphQLError("Error!")],
       },
     },
-    result: {
-      errors: [new GraphQLError("Error!")],
-    },
-  }
+  ]
 
-  renderWithMocks(<Connections />, [mock])
+  render(<Connections />, { mocks, withRouter: true })
 
   await waitFor(() => {
-    expect(screen.getByText("Error!")).toBeTruthy()
+    expect(screen.getByText("Error!")).toBeInTheDocument()
   })
 })

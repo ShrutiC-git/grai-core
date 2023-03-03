@@ -1,19 +1,20 @@
 import React from "react"
 import { gql, useQuery } from "@apollo/client"
-import ConnectionsTable from "components/connections/ConnectionsTable"
+import { Box } from "@mui/material"
+import useWorkspace from "helpers/useWorkspace"
 import ConnectionsHeader from "components/connections/ConnectionsHeader"
+import ConnectionsTable from "components/connections/ConnectionsTable"
+import PageLayout from "components/layout/PageLayout"
+import GraphError from "components/utils/GraphError"
 import {
   GetConnections,
   GetConnectionsVariables,
 } from "./__generated__/GetConnections"
-import { useParams } from "react-router-dom"
-import { Box } from "@mui/material"
-import GraphError from "components/utils/GraphError"
-import PageLayout from "components/layout/PageLayout"
 
+//Extra parameters required to make cache update work on connection run
 export const GET_CONNECTIONS = gql`
-  query GetConnections($workspaceId: ID!) {
-    workspace(pk: $workspaceId) {
+  query GetConnections($organisationName: String!, $workspaceName: String!) {
+    workspace(organisationName: $organisationName, name: $workspaceName) {
       id
       connections {
         id
@@ -69,14 +70,15 @@ export const GET_CONNECTIONS = gql`
 `
 
 const Connections: React.FC = () => {
-  const { workspaceId } = useParams()
+  const { organisationName, workspaceName } = useWorkspace()
 
   const { loading, error, data, refetch } = useQuery<
     GetConnections,
     GetConnectionsVariables
   >(GET_CONNECTIONS, {
     variables: {
-      workspaceId: workspaceId ?? "",
+      organisationName,
+      workspaceName,
     },
   })
 
@@ -94,6 +96,7 @@ const Connections: React.FC = () => {
       >
         <ConnectionsTable
           connections={data?.workspace.connections ?? []}
+          workspaceId={data?.workspace.id}
           loading={loading}
         />
       </Box>

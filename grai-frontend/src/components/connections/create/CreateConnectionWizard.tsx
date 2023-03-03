@@ -1,18 +1,19 @@
-import { gql, useMutation } from "@apollo/client"
-import WizardLayout, { WizardSteps } from "components/wizards/WizardLayout"
 import React, { useState } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { ConnectorType } from "../ConnectionsForm"
-import { Connector } from "../connectors/ConnectorCard"
+import { gql, useMutation } from "@apollo/client"
+import useWorkspace from "helpers/useWorkspace"
+import { useSnackbar } from "notistack"
+import WizardLayout, { WizardSteps } from "components/wizards/WizardLayout"
 import {
   CreateConnection,
   CreateConnectionVariables,
 } from "./__generated__/CreateConnection"
+import { NewConnection } from "./__generated__/NewConnection"
+import ConnectorSelectTab from "./ConnectorSelectTab"
 import SetSchedule from "./SetSchedule"
 import SetupConnection from "./SetupConnection"
 import TestConnection from "./TestConnection"
-import ConnectorSelectTab from "./ConnectorSelectTab"
-import { useSnackbar } from "notistack"
+import { ConnectorType } from "../ConnectionsForm"
+import { Connector } from "../connectors/ConnectorCard"
 
 export const CREATE_CONNECTION = gql`
   mutation CreateConnection(
@@ -72,19 +73,58 @@ export type Values = {
   schedules: SchedulesValues | null
 }
 
-const CreateConnectionWizard: React.FC = () => {
-  const { workspaceId } = useParams()
-  const navigate = useNavigate()
+type CreateConnectionWizardProps = {
+  workspaceId: string
+}
+
+const CreateConnectionWizard: React.FC<CreateConnectionWizardProps> = ({
+  workspaceId,
+}) => {
+  const { workspaceNavigate } = useWorkspace()
   const { enqueueSnackbar } = useSnackbar()
 
   const [createConnection, { loading, error }] = useMutation<
     CreateConnection,
     CreateConnectionVariables
-  >(CREATE_CONNECTION)
+  >(CREATE_CONNECTION, {
+    update(cache, { data }) {
+      cache.modify({
+        id: cache.identify({
+          id: workspaceId,
+          __typename: "Workspace",
+        }),
+        fields: {
+          connections(existingConnections = []) {
+            if (!data?.createConnection) return
+
+            const newConnection = cache.writeFragment<NewConnection>({
+              data: data.createConnection,
+              fragment: gql`
+                fragment NewConnection on Connection {
+                  id
+                  connector {
+                    id
+                    name
+                  }
+                  namespace
+                  name
+                  metadata
+                  is_active
+                  created_at
+                  updated_at
+                }
+              `,
+            })
+            return [...existingConnections, newConnection]
+          },
+        },
+      })
+    },
+  })
 
   const defaultValues: Values = {
     connector: null,
-    namespace: "",
+    namespace: "default",
     name: "",
     metadata: null,
     secrets: null,
@@ -96,7 +136,7 @@ const CreateConnectionWizard: React.FC = () => {
   const handleSubmit = () => {
     createConnection({
       variables: {
-        workspaceId: workspaceId ?? "",
+        workspaceId,
         connectorId: values.connector?.id as string,
         namespace: values.namespace,
         name: values.name,
@@ -107,9 +147,7 @@ const CreateConnectionWizard: React.FC = () => {
       },
     })
       .then(res =>
-        navigate(
-          `/workspaces/${workspaceId}/connections/${res.data?.createConnection.id}`
-        )
+        workspaceNavigate(`connections/${res.data?.createConnection.id}`)
       )
       .then(() => enqueueSnackbar("Connection created"))
       .catch(() => {})
@@ -120,6 +158,7 @@ const CreateConnectionWizard: React.FC = () => {
       setValues({
         ...values,
         connector,
+        name: connector.name,
       })
       setActiveStep(1)
     }
@@ -137,7 +176,12 @@ const CreateConnectionWizard: React.FC = () => {
     {
       title: "Setup connection",
       element: opts => (
-        <SetupConnection opts={opts} values={values} setValues={setValues} />
+        <SetupConnection
+          workspaceId={workspaceId}
+          opts={opts}
+          values={values}
+          setValues={setValues}
+        />
       ),
     },
     {
@@ -163,7 +207,7 @@ const CreateConnectionWizard: React.FC = () => {
     <WizardLayout
       title="Create Connection"
       steps={steps}
-      closeRoute={workspaceId => `/workspaces/${workspaceId}/connections`}
+      onClose={() => workspaceNavigate("connections")}
     />
   )
 }

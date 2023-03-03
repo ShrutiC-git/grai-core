@@ -1,3 +1,4 @@
+import React, { JSXElementConstructor, ReactElement } from "react"
 import { Check, Close, HourglassEmpty } from "@mui/icons-material"
 import {
   Box,
@@ -8,8 +9,7 @@ import {
   Theme,
 } from "@mui/material"
 import { OverridableStringUnion } from "@mui/types"
-import React, { JSXElementConstructor, ReactElement } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import useWorkspace from "helpers/useWorkspace"
 
 type Status = {
   label?: string
@@ -49,11 +49,9 @@ const RunStatus: React.FC<RunStatusProps> = ({
   onClick,
   sx,
 }) => {
-  const navigate = useNavigate()
-  const { workspaceId } = useParams()
+  const { workspaceNavigate } = useWorkspace()
 
-  const handleNavigate = () =>
-    navigate(`/workspaces/${workspaceId}/runs/${run.id}`)
+  const handleNavigate = () => workspaceNavigate(`runs/${run.id}`)
 
   const handleClick = onClick ? onClick : link ? handleNavigate : undefined
 
@@ -65,8 +63,8 @@ const RunStatus: React.FC<RunStatusProps> = ({
     running: {
       label: "Running",
       icon: (
-        <Box sx={{ px: size === "small" ? 0.5 : null }}>
-          <CircularProgress size={size === "small" ? "0.8rem" : undefined} />
+        <Box sx={{ px: 0.5 }}>
+          <CircularProgress size={size === "small" ? "0.8rem" : "1.2rem"} />
         </Box>
       ),
       color: "default",
