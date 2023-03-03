@@ -67,6 +67,8 @@ services:
     image: nginx:alpine
     volumes:
       - ./nginx-uffizzi:/etc/nginx
+    entrypoint: /bin/sh
+    command: ["-c", "apk add wait4ports && wait4ports tcp://0.0.0.0:5432 && nginx -g daemon off"]  
     deploy:
           resources:
             limits:
