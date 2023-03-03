@@ -41,10 +41,10 @@ services:
   
   frontend:
     image: "${FRONTEND_IMAGE}"
-    entrypoint: /bin/sh
-    command:
-         - "-c"
-         - "REACT_APP_SERVER_URL=$$UFFIZZI_URL/api /usr/share/nginx/html/env.sh && nginx -g \"daemon off;\""
+    # entrypoint: /bin/sh
+    # command:
+    #      - "-c"
+    #      - "REACT_APP_SERVER_URL=$$UFFIZZI_URL/api /usr/share/nginx/html/env.sh && nginx -g \"daemon off;\""
     deploy:
           resources:
             limits:
@@ -64,7 +64,7 @@ services:
     volumes:
       - ./nginx-uffizzi:/etc/nginx
       
-  celery_worker:
+  celery-worker:
     image: "${SERVER_IMAGE}"
     command: 
     - "/start-celeryworker"
@@ -88,7 +88,7 @@ services:
             limits:
               memory: 2000M      
   
-  celery_beat_worker:
+  celery-beat-worker:
     image: "${SERVER_IMAGE}"
     volumes:
       - ./grai-server/app/:/usr/src/app/
