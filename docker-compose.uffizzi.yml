@@ -22,10 +22,9 @@ services:
       - DJANGO_SUPERUSER_USERNAME=null@grai.io
       - DJANGO_SUPERUSER_PASSWORD=super_secret
       - DJANGO_SUPERUSER_WORKSPACE=Workspace1
-    entrypoint: /bin/sh
-    command:
-         - "-c"
-         - "FRONTEND_URL=$$UFFIZZI_URL/ /usr/src/app/entrypoint.sh gunicorn the_guide.wsgi -b 127.0.0.1:8000 -w 2"
+      - SERVER_HOST=localhost
+      - CELERY_BROKER=redis://127.0.0.1:6379/0
+      - CELERY_BACKEND=redis://127.0.0.1:6379/0
     deploy:
           resources:
             limits:
@@ -38,8 +37,12 @@ services:
       - POSTGRES_PASSWORD=grai
       - POSTGRES_DB=grai
     ports:
-      - 5432:5432
-  
+      - 5432:5432  
+    deploy:
+          resources:
+            limits:
+              memory: 500M  
+   
   frontend:
     image: "${FRONTEND_IMAGE}"
     entrypoint: /bin/sh
@@ -49,9 +52,82 @@ services:
     deploy:
           resources:
             limits:
-              memory: 2000M  
+              memory: 2000M 
+  
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379" 
+    deploy:
+          resources:
+            limits:
+              memory: 500M             
               
   nginx:
     image: nginx:alpine
     volumes:
       - ./nginx-uffizzi:/etc/nginx
+    deploy:
+          resources:
+            limits:
+              memory: 500M  
+      
+      
+  celery_worker:
+    image: "${SERVER_IMAGE}"
+    command: 
+    - "/start-celeryworker"
+    volumes:
+      - ./grai-server/app/:/usr/src/app/
+    environment:
+      - DB_HOST=127.0.0.1
+      - DB_PORT=5432
+      - DB_NAME=grai
+      - DB_USER=grai
+      - DB_PASSWORD=grai
+      - DJANGO_SUPERUSER_USERNAME=null@grai.io
+      - DJANGO_SUPERUSER_PASSWORD=super_secret
+      - DJANGO_SUPERUSER_WORKSPACE=Workspace1
+      - SERVER_HOST=localhost
+      - CELERY_BROKER=redis://127.0.0.1:6379/0
+      - CELERY_BACKEND=redis://127.0.0.1:6379/0
+      - SECRET_KEY="123456789" 
+    deploy:
+          resources:
+            limits:
+              memory: 2000M      
+  
+  celery_beat_worker:
+    image: "${SERVER_IMAGE}"
+    volumes:
+      - ./grai-server/app/:/usr/src/app/
+    environment:
+      - DB_HOST=127.0.0.1
+      - DB_PORT=5432
+      - DB_NAME=grai
+      - DB_USER=grai
+      - DB_PASSWORD=grai
+      - DJANGO_SUPERUSER_USERNAME=null@grai.io
+      - DJANGO_SUPERUSER_PASSWORD=super_secret
+      - DJANGO_SUPERUSER_WORKSPACE=Workspace1
+      - SERVER_HOST=localhost
+      - CELERY_BROKER=redis://127.0.0.1:6379/0
+      - CELERY_BACKEND=redis://127.0.0.1:6379/0
+      - SECRET_KEY="123456789" 
+    command: 
+    - "/start-celerybeat"
+    deploy:
+          resources:
+            limits:
+              memory: 2000M            
+
+  flower:
+    image: mher/flower
+    ports:
+      - 5557:5555
+    environment:
+      - CELERY_BROKER_URL=redis://127.0.0.1:6379/0
+    deploy:
+          resources:
+            limits:
+              memory: 2000M   
