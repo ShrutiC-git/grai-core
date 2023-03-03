@@ -41,14 +41,14 @@ services:
     deploy:
           resources:
             limits:
-              memory: 2000M  
+              memory: 500M  
    
   frontend:
     image: "${FRONTEND_IMAGE}"
-    # entrypoint: /bin/sh
-    # command:
-    #      - "-c"
-    #      - "REACT_APP_SERVER_URL=$$UFFIZZI_URL/api /usr/share/nginx/html/env.sh && nginx -g \"daemon off;\""
+    entrypoint: /bin/sh
+    command:
+         - "-c"
+         - "REACT_APP_SERVER_URL=$$UFFIZZI_URL/api /usr/share/nginx/html/env.sh && nginx -g \"daemon off;\""
     deploy:
           resources:
             limits:
@@ -61,18 +61,12 @@ services:
     deploy:
           resources:
             limits:
-              memory: 2000M             
+              memory: 500M             
               
   nginx:
     image: nginx:alpine
     volumes:
       - ./nginx-uffizzi:/etc/nginx
-    entrypoint: /bin/sh
-    command: ["-c", "apk add wait4ports && wait4ports tcp://0.0.0.0:5432 && nginx -g daemon off"]  
-    deploy:
-          resources:
-            limits:
-              memory: 1000M  
           
   celery_worker:
     image: "${SERVER_IMAGE}"
