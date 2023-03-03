@@ -41,10 +41,10 @@ services:
   
   frontend:
     image: "${FRONTEND_IMAGE}"
-    # entrypoint: /bin/sh
-    # command:
-    #      - "-c"
-    #      - "REACT_APP_SERVER_URL=$$UFFIZZI_URL/api /usr/share/nginx/html/env.sh && nginx -g \"daemon off;\""
+    entrypoint: /bin/sh
+    command:
+         - "-c"
+         - "REACT_APP_SERVER_URL=$$UFFIZZI_URL/api /usr/share/nginx/html/env.sh && nginx -g \"daemon off;\""
     deploy:
           resources:
             limits:
