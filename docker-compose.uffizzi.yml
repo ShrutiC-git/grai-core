@@ -71,7 +71,7 @@ services:
     volumes:
       - ./grai-server/app/:/usr/src/app/
     environment:
-      - DB_HOST=127.0.0.1
+      - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=grai
       - DB_USER=grai
@@ -93,7 +93,7 @@ services:
     volumes:
       - ./grai-server/app/:/usr/src/app/
     environment:
-      - DB_HOST=127.0.0.1
+      - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=grai
       - DB_USER=grai
