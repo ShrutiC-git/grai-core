@@ -14,7 +14,7 @@ services:
     ports:
       - 8000:8000
     environment:
-      - DB_HOST=127.0.0.1
+      - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=grai
       - DB_USER=grai
@@ -117,7 +117,7 @@ services:
     ports:
       - 5557:5555
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://127.0.0.1:6379/0
     deploy:
           resources:
             limits:
