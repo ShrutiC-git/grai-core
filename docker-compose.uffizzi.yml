@@ -80,8 +80,8 @@ services:
       - DJANGO_SUPERUSER_PASSWORD=super_secret
       - DJANGO_SUPERUSER_WORKSPACE=Workspace1
       - SERVER_HOST=localhost
-      - CELERY_BROKER=redis://127.0.0.1:6379/0
-      - CELERY_BACKEND=redis://127.0.0.1:6379/0
+      - CELERY_BROKER=redis://redis/0
+      - CELERY_BACKEND=redis://redis/0
       - SECRET_KEY="123456789" 
     deploy:
           resources:
@@ -102,8 +102,8 @@ services:
       - DJANGO_SUPERUSER_PASSWORD=super_secret
       - DJANGO_SUPERUSER_WORKSPACE=Workspace1
       - SERVER_HOST=localhost
-      - CELERY_BROKER=redis://127.0.0.1:6379/0
-      - CELERY_BACKEND=redis://127.0.0.1:6379/0
+      - CELERY_BROKER=redis://redis/0
+      - CELERY_BACKEND=redis://redis/0
       - SECRET_KEY="123456789" 
     command: 
     - "/start-celerybeat"
@@ -117,7 +117,7 @@ services:
     ports:
       - 5557:5555
     environment:
-      - CELERY_BROKER_URL=redis://127.0.0.1:6379/0
+      - CELERY_BROKER_URL=redis://redis/0
     deploy:
           resources:
             limits:
