@@ -62,7 +62,7 @@ services:
   nginx:
     image: nginx:alpine
     volumes:
-      - ./nginx-uffizzi:/etc/nginx
+      - ./nginx-uffizzi/nginx.conf:/etc/nginx/nginx.conf
       
   celery-worker:
     image: "${SERVER_IMAGE}"
