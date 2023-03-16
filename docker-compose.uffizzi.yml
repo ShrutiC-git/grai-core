@@ -128,4 +128,4 @@ services:
 
 configs:
   nginx-conf:
-    file: ./nginx/nginx.conf
+    file: ./nginx-uffizzi/nginx.conf
