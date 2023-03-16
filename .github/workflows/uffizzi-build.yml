@@ -100,7 +100,9 @@ jobs:
           GHA_ACTOR=${{github.actor}}
           GHA_REPO=${{github.event.repository.name}}
           GHA_BRANCH=${{github.head_ref}}
-          export GHA_ACTOR GHA_REPO GHA_BRANCH
+          # CELERY_BROKER_URL=${{secrets.CELERY_BROKER_URL}}
+          export GHA_ACTOR GHA_REPO GHA_BRANCH 
+          # export CELERY_BROKER_URL
           # Render simple template from environment variables.
           envsubst < docker-compose.uffizzi.yml > docker-compose.rendered.yml
           cat docker-compose.rendered.yml
