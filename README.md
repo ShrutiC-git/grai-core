@@ -2,6 +2,7 @@
   <img src="docs/assets/Grai-Logo-Horizontal-2.png" width="375px"><br>
 </div>
 
+
 <p align="center">
   <a href="https://join.slack.com/t/graicommunity/shared_invite/zt-1il70kfeb-TaCm5fwHg_quWCpKNYyj6w">
     <img src="https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white" height=22/>
