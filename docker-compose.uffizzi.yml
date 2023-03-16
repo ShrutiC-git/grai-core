@@ -61,11 +61,8 @@ services:
               
   nginx:
     image: nginx:alpine
-    configs: 
-      - source: nginx-conf
-        target: /etc/nginx/nginx.conf
-    # volumes:
-    #   - ./nginx-uffizzi:/etc/nginx
+    volumes:
+      - ./nginx-uffizzi:/etc/nginx
       
   celery-worker:
     image: "${SERVER_IMAGE}"
@@ -126,7 +123,3 @@ services:
           resources:
             limits:
               memory: 2000M   
-
-configs:
-  nginx-conf:
-    file: ./nginx-uffizzi/nginx.conf
