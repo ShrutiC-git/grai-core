@@ -2,8 +2,8 @@ version: "3.7"
 
 x-uffizzi:
   ingress:
-    service: frontend
-    port: 80
+    service: nginx
+    port: 8081
 
 services:
 
@@ -41,12 +41,12 @@ services:
   
   frontend:
     image: "${FRONTEND_IMAGE}"
-    environment:
-      - REACT_APP_API_URL=http://localhost:8000
-    # entrypoint: /bin/sh
-    # command:
-    #      - "-c"
-    #      - "REACT_APP_SERVER_URL=$$UFFIZZI_URL/api /usr/share/nginx/html/env.sh && nginx -g \"daemon off;\""
+    # environment:
+    #   - REACT_APP_API_URL=http://localhost:8000
+    entrypoint: /bin/sh
+    command:
+         - "-c"
+         - "REACT_APP_SERVER_URL=$$UFFIZZI_URL/api /usr/share/nginx/html/env.sh && nginx -g \"daemon off;\""
     deploy:
           resources:
             limits:
