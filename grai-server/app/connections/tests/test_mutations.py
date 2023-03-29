@@ -13,12 +13,13 @@ from api.tests.common import (
     test_user,
     test_workspace,
 )
+from connections.models import Connection
 
 
 @pytest.mark.asyncio
 @pytest.mark.django_db
 async def test_create_connection(test_context):
-    context, organisation, workspace, user = test_context
+    context, organisation, workspace, user, membership = test_context
 
     connector = await generate_connector()
 
@@ -55,7 +56,7 @@ async def test_create_connection(test_context):
 
 @pytest.mark.django_db
 async def test_create_connection_no_membership(test_context):
-    context, organisation, workspace, user = test_context
+    context, organisation, workspace, user, membership = test_context
 
     workspace2 = await generate_workspace(organisation)
 
@@ -94,7 +95,7 @@ async def test_create_connection_no_membership(test_context):
 
 @pytest.mark.django_db
 async def test_update_connection(test_context):
-    context, organisation, workspace, user = test_context
+    context, organisation, workspace, user, membership = test_context
     connection = await generate_connection(workspace)
 
     mutation = """
@@ -115,7 +116,9 @@ async def test_update_connection(test_context):
             "namespace": "default",
             "name": name,
             "metadata": {},
-            "secrets": None,
+            "secrets": {
+                "a": "hello",
+            },
             "schedules": None,
             "is_active": False,
         },
@@ -131,7 +134,7 @@ async def test_update_connection(test_context):
 
 @pytest.mark.django_db
 async def test_update_connection_with_schedule(test_context):
-    context, organisation, workspace, user = test_context
+    context, organisation, workspace, user, membership = test_context
     connection = await generate_connection(workspace)
 
     mutation = """
@@ -177,7 +180,7 @@ async def test_update_connection_with_schedule(test_context):
 
 @pytest.mark.django_db
 async def test_update_connection_with_incorrect_schedule(test_context):
-    context, organisation, workspace, user = test_context
+    context, organisation, workspace, user, membership = test_context
     connection = await generate_connection(workspace)
 
     mutation = """
@@ -212,7 +215,7 @@ async def test_update_connection_with_incorrect_schedule(test_context):
 
 @pytest.mark.django_db
 async def test_update_connection_no_membership(test_context):
-    context, organisation, workspace, user = test_context
+    context, organisation, workspace, user, membership = test_context
     workspace2 = await generate_workspace(organisation)
     connection = await generate_connection(workspace2)
 
@@ -247,14 +250,48 @@ async def test_update_connection_no_membership(test_context):
 
 
 @pytest.mark.django_db
+async def test_update_connection_temp(test_context):
+    context, organisation, workspace, user, membership = test_context
+    connection = await generate_connection(workspace, temp=True)
+
+    mutation = """
+        mutation UpdateConnection($id: ID!, $temp: Boolean) {
+            updateConnection(id: $id, temp: $temp) {
+                id
+                temp
+            }
+        }
+    """
+
+    result = await schema.execute(
+        mutation,
+        variable_values={
+            "id": str(connection.id),
+            "temp": True,
+        },
+        context_value=context,
+    )
+
+    assert result.errors is None
+    assert result.data["updateConnection"] == {
+        "id": str(connection.id),
+        "temp": True,
+    }
+    assert connection.temp is True
+
+
+@pytest.mark.django_db
 async def test_run_connection(test_context):
-    context, organisation, workspace, user = test_context
+    context, organisation, workspace, user, membership = test_context
     connection = await generate_connection(workspace)
 
     mutation = """
         mutation RunConnection($connectionId: ID!) {
             runConnection(connectionId: $connectionId) {
                 id
+                connection {
+                    id
+                }
             }
         }
     """
@@ -268,14 +305,14 @@ async def test_run_connection(test_context):
     )
 
     assert result.errors is None
-    assert result.data["runConnection"] == {
+    assert result.data["runConnection"]["connection"] == {
         "id": str(connection.id),
     }
 
 
 @pytest.mark.django_db
 async def test_run_connection_no_membership(test_context):
-    context, organisation, workspace, user = test_context
+    context, organisation, workspace, user, membership = test_context
     workspace2 = await generate_workspace(organisation)
     connection = await generate_connection(workspace2)
 
@@ -304,13 +341,16 @@ async def test_run_connection_no_membership(test_context):
 
 @pytest.mark.django_db
 async def test_run_connection_postgres(test_context):
-    context, organisation, workspace, user = test_context
+    context, organisation, workspace, user, membership = test_context
     connection = await generate_connection(workspace)
 
     mutation = """
         mutation RunConnection($connectionId: ID!) {
             runConnection(connectionId: $connectionId) {
                 id
+                connection {
+                    id
+                }
             }
         }
     """
@@ -324,6 +364,36 @@ async def test_run_connection_postgres(test_context):
     )
 
     assert result.errors is None
-    assert result.data["runConnection"] == {
+    assert result.data["runConnection"]["connection"] == {
         "id": str(connection.id),
     }
+
+
+@pytest.mark.django_db
+async def test_delete_connection(test_context):
+    context, organisation, workspace, user, membership = test_context
+    connection = await generate_connection(workspace)
+
+    mutation = """
+        mutation DeleteConnection($id: ID!) {
+            deleteConnection(id: $id) {
+                id
+            }
+        }
+    """
+
+    result = await schema.execute(
+        mutation,
+        variable_values={
+            "id": str(connection.id),
+        },
+        context_value=context,
+    )
+
+    assert result.errors is None
+    assert result.data["deleteConnection"]["id"] == str(connection.id)
+
+    with pytest.raises(Exception) as e_info:
+        await Connection.objects.aget(id=connection.id)
+
+    assert str(e_info.value) == "Connection matching query does not exist."

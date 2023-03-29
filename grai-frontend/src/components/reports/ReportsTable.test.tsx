@@ -1,6 +1,6 @@
 import React from "react"
 import userEvent from "@testing-library/user-event"
-import { render, screen } from "testing"
+import { act, render, screen } from "testing"
 import ReportsTable from "./ReportsTable"
 
 const runs = [
@@ -41,6 +41,16 @@ const runs = [
         repo: "repo",
       },
     },
+    metadata: {
+      results: [
+        {
+          test_pass: true,
+        },
+        {
+          test_pass: false,
+        },
+      ],
+    },
   },
   {
     id: "2",
@@ -76,6 +86,13 @@ const runs = [
         repo: "repo",
       },
     },
+    metadata: {
+      results: [
+        {
+          test_pass: true,
+        },
+      ],
+    },
   },
   {
     id: "3",
@@ -95,6 +112,13 @@ const runs = [
     finished_at: "1243",
     user: null,
     commit: null,
+    metadata: {
+      results: [
+        {
+          test_pass: false,
+        },
+      ],
+    },
   },
 ]
 
@@ -127,14 +151,16 @@ test("row click", async () => {
 
   const { container } = render(<ReportsTable runs={runs} />, {
     routes: [
-      "/:organisationName/:workspaceName/reports/github/owner/repo/pulls/123",
+      "/:organisationName/:workspaceName/reports/github/owner/reports/1",
     ],
   })
 
   expect(screen.getByText("Success")).toBeInTheDocument()
 
-  // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
-  await user.click(container.querySelectorAll("tbody > tr")[0])
+  await act(
+    // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+    async () => await user.click(container.querySelectorAll("tbody > tr")[0])
+  )
 
   expect(screen.getByText("New Page")).toBeInTheDocument()
 })
@@ -144,14 +170,16 @@ test("row click no pr", async () => {
 
   const { container } = render(<ReportsTable runs={runs} />, {
     routes: [
-      "/:organisationName/:workspaceName/reports/github/owner/repo/commits/abcd1",
+      "/:organisationName/:workspaceName/reports/github/owner/reports/2",
     ],
   })
 
   expect(screen.getByText("Success")).toBeInTheDocument()
 
-  // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
-  await user.click(container.querySelectorAll("tbody > tr")[1])
+  await act(
+    // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+    async () => await user.click(container.querySelectorAll("tbody > tr")[1])
+  )
 
   expect(screen.getByText("New Page")).toBeInTheDocument()
 })
@@ -160,13 +188,15 @@ test("row click no commit", async () => {
   const user = userEvent.setup()
 
   const { container } = render(<ReportsTable runs={runs} />, {
-    routes: ["/:organisationName/:workspaceName/runs/3"],
+    routes: ["/:organisationName/:workspaceName/reports/3"],
   })
 
   expect(screen.getByText("Success")).toBeInTheDocument()
 
-  // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
-  await user.click(container.querySelectorAll("tbody > tr")[2])
+  await act(
+    // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+    async () => await user.click(container.querySelectorAll("tbody > tr")[2])
+  )
 
   expect(screen.getByText("New Page")).toBeInTheDocument()
 })

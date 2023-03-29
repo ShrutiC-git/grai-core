@@ -11,6 +11,7 @@ import {
 import useWorkspace from "helpers/useWorkspace"
 import HomeCards from "components/home/HomeCards"
 import PageLayout from "components/layout/PageLayout"
+import SearchDialog from "components/search/SearchDialog"
 import GraphError from "components/utils/GraphError"
 import {
   GetWorkspaceHome,
@@ -30,6 +31,8 @@ export const GET_WORKSPACE = gql`
 const Home: React.FC = () => {
   const { organisationName, workspaceName } = useWorkspace()
 
+  const [search, setSearch] = React.useState(false)
+
   const { loading, error, data } = useQuery<
     GetWorkspaceHome,
     GetWorkspaceHomeVariables
@@ -47,6 +50,10 @@ const Home: React.FC = () => {
 
   if (!workspace) return <NotFound />
 
+  const handleClose = () => {
+    setSearch(false)
+  }
+
   return (
     <PageLayout>
       <Container maxWidth="lg" sx={{ textAlign: "center" }}>
@@ -59,6 +66,8 @@ const Home: React.FC = () => {
         </Typography>
         <TextField
           placeholder="Search data assets"
+          onClick={() => setSearch(true)}
+          disabled
           sx={{ width: 750, mb: 15 }}
           InputProps={{
             endAdornment: (
@@ -70,6 +79,11 @@ const Home: React.FC = () => {
         />
         <HomeCards />
       </Container>
+      <SearchDialog
+        open={search}
+        onClose={handleClose}
+        workspaceId={workspace.id}
+      />
     </PageLayout>
   )
 }

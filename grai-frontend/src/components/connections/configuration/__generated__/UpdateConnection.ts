@@ -29,5 +29,5 @@ export interface UpdateConnectionVariables {
   metadata: any;
   secrets?: any | null;
   schedules?: any | null;
-  is_active?: boolean | null;
+  is_active: boolean;
 }

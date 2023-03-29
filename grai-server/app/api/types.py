@@ -1,8 +1,10 @@
 import datetime
+import time
 from typing import List, Optional
 
 import strawberry
 import strawberry_django
+from django.conf import settings
 from django.db.models import Prefetch, Q
 from strawberry.scalars import JSON
 from strawberry_django.filters import FilterLookup
@@ -10,6 +12,7 @@ from strawberry_django.pagination import OffsetPaginationInput
 from strawberry_django_plus import gql
 from strawberry_django_plus.gql import auto
 
+from api.search import Search
 from connections.models import Connection as ConnectionModel
 from connections.models import Connector as ConnectorModel
 from connections.models import Run as RunModel
@@ -418,7 +421,11 @@ class Workspace:
     # Runs
     @gql.django.field
     def runs(
-        self, owner: Optional[str] = None, repo: Optional[str] = None, branch: Optional[str] = None
+        self,
+        owner: Optional[str] = None,
+        repo: Optional[str] = None,
+        branch: Optional[str] = None,
+        action: Optional[str] = None,
     ) -> List["Run"]:
         q_filter = Q(workspace=self)
 
@@ -427,6 +434,9 @@ class Workspace:
 
         if branch:
             q_filter &= Q(commit__branch__reference=branch)
+
+        if action:
+            q_filter &= Q(action=action)
 
         return RunModel.objects.order_by("-created_at").filter(q_filter)
 
@@ -546,6 +556,18 @@ class Workspace:
             CommitModel.objects.get(id=id)
             if id is not None
             else CommitModel.objects.get(workspace=self, reference=reference)
+        )
+
+    # Algolia search key
+    @gql.django.field
+    def search_key(self) -> str:
+        client = Search()
+
+        valid_until = int(time.time()) + 3600
+
+        return client.generate_secured_api_key(
+            settings.ALGOLIA_SEARCH_KEY,
+            {"filters": f"workspace_id:{str(self.id)}", "validUntil": valid_until, "restrictIndices": "main"},
         )
 
 

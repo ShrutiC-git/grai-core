@@ -23,6 +23,8 @@ export const GET_API_KEYS = gql`
         created_by {
           id
           username
+          first_name
+          last_name
         }
       }
     }
@@ -52,7 +54,11 @@ const ApiKeys: React.FC = () => {
     <SettingsLayout>
       <Box sx={{ p: 3 }}>
         <ApiKeysHeader workspaceId={workspace?.id} />
-        <ApiKeysTable keys={workspace?.api_keys ?? []} loading={loading} />
+        <ApiKeysTable
+          keys={workspace?.api_keys ?? []}
+          loading={loading}
+          workspaceId={workspace?.id}
+        />
       </Box>
     </SettingsLayout>
   )

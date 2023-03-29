@@ -19,6 +19,7 @@ def query_obj_from_param_string(
 ) -> Optional[List[Dict]]:
     supported_params = ["name", "namespace"]
     query = "&".join([f"{param}={kwargs[param]}" for param in supported_params if param in kwargs])
+
     url = f"{base_url}?{query}"
     resp = client.get(url, options=options).json()
     num_results = len(resp)
@@ -202,8 +203,13 @@ def get_workspace_by_name_v1(
 ) -> Optional[Workspace]:
     if is_valid_uuid(name):
         url = f"{client.get_url(grai_type)}{name}"
-    url = f"{client.get_url(grai_type)}?name={name}"
+    elif len(name.split("/")) == 2:
+        # this is a ref string i.e. org-name/workspace-name
+        url = f"{client.get_url(grai_type)}?ref={name}"
+    else:
+        url = f"{client.get_url(grai_type)}?name={name}"
     resp = client.get(url, options=options).json()
+
     num_resp = len(resp)
     if num_resp == 0:
         return None
@@ -211,5 +217,8 @@ def get_workspace_by_name_v1(
         return Workspace(**resp[0])
     else:
         raise Exception(
-            f"Too many workspaces found matching the name {name}. This is a defensive error you should never see."
+            f"We were unable to identify a unique workspace matching `{name}` because more than one result was "
+            f"returned. This may be the result of belonging to multiple organizations with identical workspace "
+            f"names. You can narrow your query by instead providing a workspace ref composed of  "
+            "{org-name}/{workspace-name}.",
         )

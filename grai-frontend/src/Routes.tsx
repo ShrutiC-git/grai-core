@@ -1,5 +1,6 @@
 /* istanbul ignore file */
 import React, { lazy, Suspense } from "react"
+import * as Sentry from "@sentry/react"
 import { Routes as BrowerRoutes, Route } from "react-router-dom"
 import WorkspaceRedirect from "pages/workspaces/WorkspaceRedirect"
 import Loading from "components/layout/Loading"
@@ -21,6 +22,7 @@ const Runs = lazy(() => import("./pages/runs/Runs"))
 const Run = lazy(() => import("./pages/runs/Run"))
 
 const Reports = lazy(() => import("./pages/reports/Reports"))
+const Report = lazy(() => import("./pages/reports/Report"))
 const Repositories = lazy(() => import("./pages/reports/Repositories"))
 const Commits = lazy(() => import("./pages/reports/Commits"))
 const PullRequests = lazy(() => import("./pages/reports/PullRequests"))
@@ -49,9 +51,11 @@ const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"))
 const PasswordReset = lazy(() => import("./pages/auth/PasswordReset"))
 const CompleteSignup = lazy(() => import("./pages/auth/CompleteSignup"))
 
+const SentryRoutes = Sentry.withSentryReactRouterV6Routing(BrowerRoutes)
+
 const Routes: React.FC = () => (
   <Suspense fallback={<Loading />}>
-    <BrowerRoutes>
+    <SentryRoutes>
       <Route element={<PrivateRoute />}>
         <Route element={<SuspenseOutlet fallback={<PageLayout loading />} />}>
           <Route index element={<Index />} />
@@ -80,14 +84,19 @@ const Routes: React.FC = () => (
                 <Route index element={<Repositories />} />
                 <Route path=":repo">
                   <Route index element={<Commits />} />
+                  <Route path=":reportId" element={<Report />} />
                   <Route path="pulls">
                     <Route index element={<PullRequests />} />
                     <Route path=":reference" element={<PullRequest />} />
                   </Route>
-                  <Route path="commits/:reference" element={<Commit />} />
+                  <Route path="commits">
+                    <Route index element={<Commits />} />
+                    <Route path=":reference" element={<Commit />} />
+                  </Route>
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Route>
+              <Route path=":reportId" element={<Report />} />
               <Route path="*" element={<NotFound />} />
             </Route>
             <Route path="connections">
@@ -131,7 +140,7 @@ const Routes: React.FC = () => (
       </Route>
 
       <Route path="*" element={<NotFound />} />
-    </BrowerRoutes>
+    </SentryRoutes>
   </Suspense>
 )
 
